@@ -4,15 +4,28 @@ import { useEffect, useState } from 'react'
 import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, TrendingDown, Package, DollarSign, Percent, AlertCircle, Edit2, Check, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export default function DashboardPage() {
+  const router = useRouter()
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState(null)
   const [editingQuantity, setEditingQuantity] = useState('')
+  
 
   useEffect(() => {
-    const fetchSummary = async () => {
+
+  const isLoggedIn = localStorage.getItem('loggedIn')
+
+  if (!isLoggedIn) {
+
+    router.push('/LoginSignup')
+    return
+
+  }
+
+  const fetchSummary = async () => {
       try {
         const res = await fetch('/api/dashboard')
         const data = await res.json()
