@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,6 +9,7 @@ import { Printer, Download, Filter } from 'lucide-react'
 import { useReactToPrint } from 'react-to-print'
 
 export default function HistoryPage() {
+  const router = useRouter()
   const [releases, setReleases] = useState([])
   const [history, setHistory] = useState([])
   const [stations, setStations] = useState([])
@@ -17,8 +19,24 @@ export default function HistoryPage() {
   const printRef = useRef(null)
 
   useEffect(() => {
+    const isLoggedIn = localStorage.getItem('loggedIn')
+    const userRole = localStorage.getItem('userRole')
+
+    if (!isLoggedIn) {
+      router.push('/LoginSignup')
+      return
+    }
+
+    if (userRole && userRole !== 'admin') {
+      const stationSlug = String(userRole)
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+      router.push(`/stations/${encodeURIComponent(stationSlug)}`)
+      return
+    }
+
     fetchData()
-  }, [selectedMonth, selectedStation])
+  }, [selectedMonth, selectedStation, router])
 
   const fetchData = async () => {
     try {

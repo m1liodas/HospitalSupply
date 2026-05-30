@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
 
 import {
   usePathname,
@@ -24,15 +25,25 @@ export function Navigation() {
 
   const router = useRouter()
 
+  const [userRole, setUserRole] = useState('')
+
+  useEffect(() => {
+    const role = localStorage.getItem('userRole')
+    setUserRole(role || 'admin')
+  }, [])
+
   const handleLogout = () => {
 
     localStorage.removeItem('loggedIn')
+    localStorage.removeItem('userRole')
 
     router.push('/LoginSignup')
 
   }
 
-  const links = [
+  const isStationUser = userRole && userRole !== 'admin'
+
+  const links = isStationUser ? [] : [
 
     {
       href: '/dashboard',

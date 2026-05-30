@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,9 +11,28 @@ import EditItemModal from './edit-item-modal'
 import ReleaseSupplyModal from './release-supply-modal'
 
 export default function CentralSupplyPage() {
+  const router = useRouter()
   const [items, setItems] = useState([])
   const [inventory, setInventory] = useState([])
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('loggedIn')
+    const userRole = localStorage.getItem('userRole')
+
+    if (!isLoggedIn) {
+      router.push('/LoginSignup')
+      return
+    }
+
+    if (userRole && userRole !== 'admin') {
+      const stationSlug = String(userRole)
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+      router.push(`/stations/${encodeURIComponent(stationSlug)}`)
+      return
+    }
+  }, [])
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showReleaseModal, setShowReleaseModal] = useState(false)

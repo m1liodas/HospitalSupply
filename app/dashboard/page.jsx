@@ -17,12 +17,21 @@ export default function DashboardPage() {
   useEffect(() => {
 
   const isLoggedIn = localStorage.getItem('loggedIn')
+  const userRole = localStorage.getItem('userRole')
 
   if (!isLoggedIn) {
 
     router.push('/LoginSignup')
     return
 
+  }
+
+  if (userRole && userRole !== 'admin') {
+    const stationSlug = String(userRole)
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+    router.push(`/stations/${encodeURIComponent(stationSlug)}`)
+    return
   }
 
   const fetchSummary = async () => {
@@ -94,7 +103,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="p-8 max-w-7xl mx-auto">
-        <div className="mb-8">
+        <div className="mb-8 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard</h1>
           <p className="text-foreground/60">Overview of medical supply inventory and financials</p>
         </div>

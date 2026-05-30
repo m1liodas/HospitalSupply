@@ -70,15 +70,15 @@ export const mockItems: Item[] = [
 ]
 
 export const mockStations: Station[] = [
-  { id: 1, name: 'ER', location: 'Building A, Floor 1' },
-  { id: 2, name: 'OB-GYNE', location: 'Building B, Floor 2' },
-  { id: 3, name: 'OR', location: 'Building A, Floor 3' },
-  { id: 4, name: 'DR', location: 'Building C, Floor 1' },
-  { id: 5, name: 'PEDIA', location: 'Building B, Floor 1' },
-  { id: 6, name: 'MEDICINE', location: 'Building C, Floor 2' },
-  { id: 7, name: 'SURGICAL', location: 'Building A, Floor 4' },
-  { id: 8, name: 'OPD', location: 'Building D, Floor 1' },
-  { id: 9, name: 'NICU', location: 'Building B, Floor 3' },
+  { id: 1, name: 'ER', location: 'ER' },
+  { id: 2, name: 'OB-GYNE', location: 'OB-GYNE' },
+  { id: 3, name: 'OR', location: 'OR' },
+  { id: 4, name: 'DR', location: 'DR' },
+  { id: 5, name: 'PEDIA', location: 'PEDIA' },
+  { id: 6, name: 'MEDICINE', location: 'MEDICINE' },
+  { id: 7, name: 'SURGICAL', location: 'SURGICAL' },
+  { id: 8, name: 'OPD', location: 'OPD' },
+  { id: 9, name: 'NICU', location: 'NICU' },
 ]
 
 export const mockInventory: Inventory[] = [

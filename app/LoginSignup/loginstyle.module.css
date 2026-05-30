@@ -1,5 +1,7 @@
 .loginPage {
   min-height: 100vh;
+  position: relative;
+  overflow: hidden;
 
   display: flex;
   align-items: center;
@@ -8,9 +10,141 @@
   padding: 20px;
 
   background:
-    radial-gradient(circle at top left, #3b82f6 0%, transparent 35%),
-    radial-gradient(circle at bottom right, #6366f1 0%, transparent 35%),
-    linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    radial-gradient(circle at 20% 20%, #02f598 0%, transparent 35%),
+    radial-gradient(circle at 80% 80%, #1024db 0%, transparent 35%),
+    linear-gradient(135deg, #ced6ae 0%, #8c9db8 100%);
+
+  background-size: 150% 150%;
+
+  animation: gradientMove 6s ease-in-out infinite;
+}
+
+@keyframes gradientMove {
+
+  0% {
+    background-position:
+      0% 0%,
+      100% 100%,
+      50% 50%;
+  }
+
+  25% {
+    background-position:
+      20% 30%,
+      80% 70%,
+      40% 60%;
+  }
+
+  50% {
+    background-position:
+      100% 0%,
+      0% 100%,
+      60% 40%;
+  }
+
+  75% {
+    background-position:
+      70% 80%,
+      30% 20%,
+      55% 45%;
+  }
+
+  100% {
+    background-position:
+      0% 0%,
+      100% 100%,
+      50% 50%;
+  }
+
+}
+
+ Floating boxes animation
+
+.floatingBoxes {
+  position: absolute;
+  inset: 0;
+
+  overflow: hidden;
+
+  pointer-events: none;
+}
+
+.floatingBoxes span {
+  position: absolute;
+
+  font-size: 42px;
+
+  opacity: .12;
+
+  animation: floatBox linear infinite;
+}
+
+.floatingBoxes span:nth-child(1) {
+  left: 5%;
+  animation-duration: 18s;
+  animation-delay: 0s;
+}
+
+.floatingBoxes span:nth-child(2) {
+  left: 20%;
+  animation-duration: 22s;
+  animation-delay: -4s;
+}
+
+.floatingBoxes span:nth-child(3) {
+  left: 40%;
+  animation-duration: 16s;
+  animation-delay: -8s;
+}
+
+.floatingBoxes span:nth-child(4) {
+  left: 60%;
+  animation-duration: 25s;
+  animation-delay: -2s;
+}
+
+.floatingBoxes span:nth-child(5) {
+  left: 80%;
+  animation-duration: 20s;
+  animation-delay: -6s;
+}
+
+.floatingBoxes span:nth-child(6) {
+  left: 92%;
+  animation-duration: 28s;
+  animation-delay: -10s;
+}
+
+@keyframes floatBox {
+
+  0% {
+    transform:
+      translateY(110vh)
+      rotate(0deg);
+
+    opacity: 0;
+  }
+
+  10% {
+    opacity: .12;
+  }
+
+  50% {
+    transform:
+      translateY(50vh)
+      translateX(40px)
+      rotate(180deg);
+  }
+
+  100% {
+    transform:
+      translateY(-120px)
+      translateX(-40px)
+      rotate(1000deg);
+
+    opacity: 1;
+  }
+
 }
 
 .container {
@@ -70,7 +204,7 @@
 
   background: linear-gradient(
     90deg,
-    #2563eb,
+    #0049e7,
     #4f46e5
   );
 }
@@ -201,6 +335,179 @@
 .authSwitch span:hover {
   color: #1d4ed8;
 }
+
+.errorMessage {
+    margin-bottom: 15px;
+
+    padding: 12px;
+
+    border-radius: 12px;
+
+    background: #fef2f2;
+
+    border: 1px solid #fecaca;
+
+    color: #dc2626;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    text-align: center;
+  }
+
+  .successToast {
+    position: fixed;
+
+    top: 20px;
+    right: 20px;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 16px 20px;
+
+    background: white;
+
+    border-radius: 18px;
+
+    box-shadow:
+      0 15px 35px rgba(0,0,0,0.15);
+
+    z-index: 9999;
+
+    animation: slideInRight 0.4s ease;
+  }
+
+  .successIcon {
+    font-size: 32px;
+
+    animation: bounce 1s infinite;
+  }
+
+  .roleSelect {
+    width: 100%;
+    height: 100%;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    font-size: 15px;
+    font-weight: 500;
+
+    color: #111827;
+
+    cursor: pointer;
+  }
+
+  .successToast p {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+  }
+
+  
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes bounce {
+
+    0%,100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-5px);
+    }
+
+  }
+
+  .modalOverlay {
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0,0,0,0.45);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 10000;
+  }
+
+  .adminModal {
+    width: 100%;
+    max-width: 380px;
+
+    background: white;
+
+    padding: 28px;
+
+    border-radius: 22px;
+
+    box-shadow:
+      0 20px 50px rgba(0,0,0,.2);
+
+    animation: fadeUp .25s ease;
+  }
+
+  .adminModal h3 {
+    margin: 0 0 10px;
+    text-align: center;
+  }
+
+  .adminModal p {
+    text-align: center;
+    color: #64748b;
+    margin-bottom: 18px;
+  }
+
+  .adminModal input {
+    width: 100%;
+
+    height: 50px;
+
+    padding: 0 14px;
+
+    border: 1px solid #dbe2ea;
+
+    border-radius: 12px;
+
+    outline: none;
+  }
+
+  .modalButtons {
+    display: flex;
+    gap: 10px;
+
+    margin-top: 18px;
+  }
+
+  .modalButtons button {
+    flex: 1;
+
+    height: 46px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    cursor: pointer;
+
+    font-weight: 600;
+  }
 
 @media (max-width: 480px) {
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
@@ -19,12 +20,29 @@ const STATION_ROUTES = {
 }
 
 export default function StationsPage() {
+  const router = useRouter()
   const [stations, setStations] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const isLoggedIn = localStorage.getItem('loggedIn')
+    const userRole = localStorage.getItem('userRole')
+
+    if (!isLoggedIn) {
+      router.push('/LoginSignup')
+      return
+    }
+
+    if (userRole && userRole !== 'admin') {
+      const stationSlug = String(userRole)
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+      router.push(`/stations/${encodeURIComponent(stationSlug)}`)
+      return
+    }
+
     fetchStations()
-  }, [])
+  }, [router])
 
   const fetchStations = async () => {
     try {

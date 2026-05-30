@@ -1,14 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle } from 'lucide-react'
 import './station.css'
 
+const normalizeStation = (value) =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+
 export default function ERStationPage() {
   const params = useParams()
+  const router = useRouter()
   const station = params?.station
   const [releases, setReleases] = useState([])
   const [usages, setUsages] = useState([])
@@ -18,10 +24,28 @@ export default function ERStationPage() {
   const [inputValue, setInputValue] = useState(0)
 
   useEffect(() => {
+    const role = localStorage.getItem('userRole')
+    const loggedIn = localStorage.getItem('loggedIn')
+
+    if (!loggedIn || !role) {
+      router.push('/LoginSignup')
+      return
+    }
+
+    if (role !== 'admin') {
+      const roleSlug = normalizeStation(role)
+      const currentStationSlug = normalizeStation(station)
+
+      if (station && roleSlug !== currentStationSlug) {
+        router.push(`/stations/${encodeURIComponent(roleSlug)}`)
+        return
+      }
+    }
+
     if (station) {
       fetchData()
     }
-  }, [station])
+  }, [station, router])
 
   const fetchData = async () => {
     try {
