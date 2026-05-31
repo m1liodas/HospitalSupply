@@ -30,6 +30,19 @@ export async function POST(req) {
           })
         }
 
+        // Check if trying to login with mock admin credentials
+        if (username === 'admin' && password === 'admin') {
+          return NextResponse.json({
+            success: true,
+            message: 'Login successful',
+            user: {
+              id: 1,
+              username: 'admin',
+              role: 'admin'
+            }
+          })
+        }
+
         return NextResponse.json({
           success: false,
           message: 'Invalid username or password'

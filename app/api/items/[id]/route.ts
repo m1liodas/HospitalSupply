@@ -22,6 +22,30 @@ export async function PUT(
   const { id } = await params
   const body = await request.json()
   const itemId = parseInt(await id)
+  
+  // Get current item first
+  const [currentRows] = await db.execute('SELECT * FROM items WHERE id = ?', [itemId])
+  if (!Array.isArray(currentRows) || currentRows.length === 0) {
+    return NextResponse.json({ error: 'Item not found' }, { status: 404 })
+  }
+
+  const currentItem = currentRows[0]
+
+  // Handle adding quantity (for resupply)
+  if (body.action === 'add') {
+    const additionalQuantity = parseInt(body.quantity, 10)
+    const newQuantity = parseInt(currentItem.quantity) + additionalQuantity
+
+    await db.execute(
+      'UPDATE items SET quantity = ?, updated_at = NOW() WHERE id = ?',
+      [newQuantity, itemId]
+    )
+
+    const [rows] = await db.execute('SELECT * FROM items WHERE id = ?', [itemId])
+    return NextResponse.json(rows[0])
+  }
+
+  // Handle regular update (from edit modal)
   const quantity = parseInt(body.quantity, 10)
   const sellingPrice = parseFloat(body.selling_price)
 

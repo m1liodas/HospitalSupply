@@ -56,6 +56,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: `Not enough stock for ${itemData.name}` }, { status: 400 })
       }
 
+      const quantityBefore = itemData.quantity
+      const quantityAfter = quantityBefore - item.quantity
+
       // CHECK IF ITEM ALREADY EXISTS IN TARGET STATION
       const [existingRows]: any = await db.execute(
         `SELECT * FROM ${tableName} WHERE name = ? AND brand = ?`,
@@ -78,6 +81,22 @@ export async function POST(request: NextRequest) {
 
       // DEDUCT FROM MAIN INVENTORY
       await db.execute(`UPDATE items SET quantity = quantity - ? WHERE id = ?`, [item.quantity, item.item_id])
+
+      // LOG TO SUPPLY HISTORY TABLE FOR AUDIT
+      await db.execute(
+        `INSERT INTO supply_history (item_id, item_name, item_brand, quantity_released, quantity_before, quantity_after, station_name, released_by) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          item.item_id,
+          itemData.name,
+          itemData.brand,
+          item.quantity,
+          quantityBefore,
+          quantityAfter,
+          stationSlug.toUpperCase(),
+          'admin'
+        ]
+      )
     }
 
     return NextResponse.json({ success: true, message: `Supplies released successfully to ${stationSlug.toUpperCase()} Station` }, { status: 201 })

@@ -5,17 +5,16 @@ import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Printer, Download, Filter } from 'lucide-react'
+import { Printer, Download, FileText } from 'lucide-react'
 import { useReactToPrint } from 'react-to-print'
 
 export default function HistoryPage() {
   const router = useRouter()
-  const [releases, setReleases] = useState([])
-  const [history, setHistory] = useState([])
-  const [stations, setStations] = useState([])
+  const [auditHistory, setAuditHistory] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selectedMonth, setSelectedMonth] = useState('2024-05')
-  const [selectedStation, setSelectedStation] = useState(null)
+  const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0])
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0])
+  const [stationFilter, setStationFilter] = useState('')
   const printRef = useRef(null)
 
   useEffect(() => {
@@ -35,49 +34,44 @@ export default function HistoryPage() {
       return
     }
 
-    fetchData()
-  }, [selectedMonth, selectedStation, router])
+    fetchAuditHistory()
+  }, [startDate, endDate, stationFilter, router])
 
-  const fetchData = async () => {
+  const fetchAuditHistory = async () => {
     try {
-      const [releasesRes, historyRes, stationsRes] = await Promise.all([
-        fetch('/api/releases'),
-        fetch(`/api/history?month=${selectedMonth}${selectedStation ? `&station_id=${selectedStation}` : ''}`),
-        fetch('/api/stations'),
-      ])
+      setLoading(true)
+      let url = `/api/audit-history?startDate=${startDate}&endDate=${endDate}`
+      if (stationFilter) {
+        url += `&stationName=${stationFilter}`
+      }
 
-      const releasesData = await releasesRes.json()
-      const historyData = await historyRes.json()
-      const stationsData = await stationsRes.json()
-
-      setReleases(releasesData)
-      setHistory(historyData)
-      setStations(stationsData)
+      const res = await fetch(url)
+      const data = await res.json()
+      setAuditHistory(data || [])
     } catch (error) {
-      console.error('Failed to fetch data:', error)
+      console.error('Failed to fetch audit history:', error)
+      setAuditHistory([])
     } finally {
       setLoading(false)
     }
   }
 
   const handlePrint = useReactToPrint({
-    content: () => printRef.current,
-    documentTitle: `Supply Audit Report ${selectedMonth}`,
+    contentRef: printRef,
+    documentTitle: `Audit Report ${startDate} to ${endDate}`,
   })
 
-  const generateMonthlyReport = async () => {
-    try {
-      const res = await fetch('/api/history', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ month: selectedMonth }),
-      })
+  const getStations = () => {
+    const stations = new Set(auditHistory.map(h => h.station_name))
+    return Array.from(stations).sort()
+  }
 
-      if (res.ok) {
-        fetchData()
-      }
-    } catch (error) {
-      console.error('Failed to generate report:', error)
+  const getTotalStats = () => {
+    return {
+      totalReleases: auditHistory.length,
+      totalQuantity: auditHistory.reduce((sum, h) => sum + h.quantity_released, 0),
+      totalBefore: auditHistory.reduce((sum, h) => sum + h.quantity_before, 0),
+      totalAfter: auditHistory.reduce((sum, h) => sum + h.quantity_after, 0),
     }
   }
 
@@ -86,48 +80,62 @@ export default function HistoryPage() {
       <div className="min-h-screen bg-background">
         <Navigation />
         <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-          <p className="text-foreground/60">Loading history...</p>
+          <p className="text-foreground/60">Loading audit history...</p>
         </div>
       </div>
     )
   }
+
+  const stats = getTotalStats()
+  const stations = getStations()
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="p-8 max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Supply History & Audit</h1>
-          <p className="text-foreground/60">Track supply releases and generate monthly audit reports</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Audit History & Reports</h1>
+          <p className="text-foreground/60">Track all supply releases and generate audit reports</p>
         </div>
 
+        {/* Filters */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-lg">Filters & Actions</CardTitle>
+            <CardTitle>Filters & Export</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Month</label>
+                <label className="block text-sm font-medium text-foreground mb-2">From Date</label>
                 <input
-                  type="month"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
                   className="px-3 py-2 border border-border rounded-lg bg-background text-foreground"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Station (Optional)</label>
+                <label className="block text-sm font-medium text-foreground mb-2">To Date</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Station</label>
                 <select
-                  value={selectedStation || ''}
-                  onChange={(e) => setSelectedStation(e.target.value ? parseInt(e.target.value) : null)}
+                  value={stationFilter}
+                  onChange={(e) => setStationFilter(e.target.value)}
                   className="px-3 py-2 border border-border rounded-lg bg-background text-foreground"
                 >
                   <option value="">All Stations</option>
                   {stations.map((station) => (
-                    <option key={station.id} value={station.id}>
-                      {station.name}
+                    <option key={station} value={station}>
+                      {station}
                     </option>
                   ))}
                 </select>
@@ -135,157 +143,195 @@ export default function HistoryPage() {
 
               <div className="flex gap-2">
                 <Button
-                  onClick={generateMonthlyReport}
-                  className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
-                >
-                  <Filter className="w-4 h-4 mr-2" />
-                  Generate Report
-                </Button>
-                <Button
                   onClick={handlePrint}
-                  variant="outline"
-                  className="border-primary text-primary hover:bg-primary/10"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   <Printer className="w-4 h-4 mr-2" />
-                  Print
+                  Print Report
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Supply Release Log</CardTitle>
-            <CardDescription>All supplies released to stations</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 font-semibold text-foreground">Date & Time</th>
-                    <th className="text-left py-3 px-4 font-semibold text-foreground">Item</th>
-                    <th className="text-left py-3 px-4 font-semibold text-foreground">Station</th>
-                    <th className="text-right py-3 px-4 font-semibold text-foreground">Quantity</th>
-                    <th className="text-left py-3 px-4 font-semibold text-foreground">Released By</th>
-                    <th className="text-left py-3 px-4 font-semibold text-foreground">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {releases.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="py-8 text-center text-foreground/60">
-                        No release records found
-                      </td>
-                    </tr>
-                  ) : (
-                    releases.map((release) => (
-                      <tr key={release.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
-                        <td className="py-3 px-4 text-foreground/80">
-                          {new Date(release.released_at).toLocaleString()}
-                        </td>
-                        <td className="py-3 px-4 font-medium text-foreground">{release.item?.name}</td>
-                        <td className="py-3 px-4 text-foreground/80">{release.station?.name}</td>
-                        <td className="py-3 px-4 text-right">
-                          <span className="bg-primary/10 text-primary px-3 py-1 rounded-full font-semibold">
-                            {release.quantity_released}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-foreground/80">{release.released_by}</td>
-                        <td className="py-3 px-4">
-                          <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
-                            {release.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Summary Stats */}
+        {auditHistory.length > 0 && (
+          <Card className="mb-8">
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-xs text-foreground/60 uppercase font-semibold">Total Releases</p>
+                  <p className="text-3xl font-bold text-primary mt-1">{stats.totalReleases}</p>
+                </div>
+                <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-xs text-foreground/60 uppercase font-semibold">Total Quantity Released</p>
+                  <p className="text-3xl font-bold text-accent mt-1">{stats.totalQuantity}</p>
+                </div>
+                <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-xs text-foreground/60 uppercase font-semibold">Quantity Before</p>
+                  <p className="text-3xl font-bold text-foreground mt-1">{stats.totalBefore}</p>
+                </div>
+                <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-xs text-foreground/60 uppercase font-semibold">Quantity After</p>
+                  <p className="text-3xl font-bold text-secondary mt-1">{stats.totalAfter}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        <div ref={printRef} className="print:p-4">
+        {/* Audit Table - Main Content for Print */}
+        <div ref={printRef}>
           <Card>
             <CardHeader>
-              <CardTitle>Monthly Audit Report - {selectedMonth}</CardTitle>
-              <CardDescription>Supply usage and financial summary</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Supply Release Audit Log</CardTitle>
+                  <CardDescription>
+                    Records from {startDate} to {endDate}
+                    {stationFilter && ` • Station: ${stationFilter}`}
+                  </CardDescription>
+                </div>
+                <FileText className="w-6 h-6 text-foreground/40" />
+              </div>
             </CardHeader>
             <CardContent>
-              {history.length === 0 ? (
-                <p className="text-foreground/60 py-8 text-center">
-                  No audit records for this period. Click "Generate Report" to create one.
-                </p>
+              {auditHistory.length === 0 ? (
+                <div className="py-12 text-center">
+                  <p className="text-foreground/60 mb-2">No records found</p>
+                  <p className="text-sm text-foreground/40">
+                    Try adjusting your date range or station filter
+                  </p>
+                </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-muted/50 border-b border-border">
-                        <th className="text-left py-3 px-4 font-semibold text-foreground">Station</th>
+                      <tr className="border-b border-border bg-muted/50">
+                        <th className="text-left py-3 px-4 font-semibold text-foreground">Date & Time</th>
                         <th className="text-left py-3 px-4 font-semibold text-foreground">Item</th>
-                        <th className="text-right py-3 px-4 font-semibold text-foreground">Used</th>
-                        <th className="text-right py-3 px-4 font-semibold text-foreground">Remaining</th>
-                        <th className="text-right py-3 px-4 font-semibold text-foreground">Cost Value</th>
-                        <th className="text-right py-3 px-4 font-semibold text-foreground">Income</th>
-                        <th className="text-right py-3 px-4 font-semibold text-foreground">Profit %</th>
+                        <th className="text-left py-3 px-4 font-semibold text-foreground">Brand</th>
+                        <th className="text-left py-3 px-4 font-semibold text-foreground">Station</th>
+                        <th className="text-center py-3 px-4 font-semibold text-foreground">Qty Released</th>
+                        <th className="text-center py-3 px-4 font-semibold text-foreground">Before</th>
+                        <th className="text-center py-3 px-4 font-semibold text-foreground">After</th>
+                        <th className="text-left py-3 px-4 font-semibold text-foreground">Released By</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {history.map((record) => (
-                        <tr key={record.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
-                          <td className="py-3 px-4 font-medium text-foreground">{record.station?.name}</td>
-                          <td className="py-3 px-4 text-foreground/80">{record.item?.name}</td>
-                          <td className="py-3 px-4 text-right text-foreground">{record.quantity_used_total}</td>
-                          <td className="py-3 px-4 text-right text-primary font-semibold">{record.quantity_remaining}</td>
-                          <td className="py-3 px-4 text-right text-foreground/80">₱{record.cost_value.toLocaleString()}</td>
-                          <td className="py-3 px-4 text-right font-semibold text-secondary">₱{record.income_value.toLocaleString()}</td>
-                          <td className="py-3 px-4 text-right">
-                            <span className="bg-accent/10 text-accent px-3 py-1 rounded-full font-semibold">
-                              {record.profit_margin.toFixed(1)}%
+                      {auditHistory.map((record, index) => (
+                        <tr key={index} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                          <td className="py-3 px-4 text-foreground/80">
+                            {new Date(record.released_at).toLocaleString()}
+                          </td>
+                          <td className="py-3 px-4 font-medium text-foreground">{record.item_name}</td>
+                          <td className="py-3 px-4 text-foreground/80">{record.item_brand || 'N/A'}</td>
+                          <td className="py-3 px-4 text-foreground/80">
+                            <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">
+                              {record.station_name}
                             </span>
                           </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="bg-accent/10 text-accent px-2 py-1 rounded font-semibold">
+                              {record.quantity_released}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-center text-foreground">{record.quantity_before}</td>
+                          <td className="py-3 px-4 text-center font-semibold text-secondary">{record.quantity_after}</td>
+                          <td className="py-3 px-4 text-foreground/80">{record.released_by}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               )}
-
-              {history.length > 0 && (
-                <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <p className="text-xs text-foreground/60 uppercase font-semibold">Total Used</p>
-                      <p className="text-2xl font-bold text-foreground">
-                        {history.reduce((sum, h) => sum + h.quantity_used_total, 0)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-foreground/60 uppercase font-semibold">Total Remaining</p>
-                      <p className="text-2xl font-bold text-primary">
-                        {history.reduce((sum, h) => sum + h.quantity_remaining, 0)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-foreground/60 uppercase font-semibold">Total Cost Value</p>
-                      <p className="text-2xl font-bold text-foreground">
-                        ₱{history.reduce((sum, h) => sum + h.cost_value, 0).toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-foreground/60 uppercase font-semibold">Total Income</p>
-                      <p className="text-2xl font-bold text-secondary">
-                        ₱{history.reduce((sum, h) => sum + h.income_value, 0).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
+
+        {/* PRINT LAYOUT ONLY */}
+        <div className="hidden">
+          <div ref={printRef} className="bg-white text-black p-10">
+
+            <div className="mb-8 border-b-2 border-black pb-4">
+              <h1 className="text-[15px] font-bold">
+                CENTRAL SUPPLY AUDIT REPORT
+              </h1>
+
+              <p className="mt-2 text-[11px]">
+                Records from {startDate} to {endDate}
+              </p>
+
+              {stationFilter && (
+                <p className="ext-[11px] mt-1">
+                  Station: {stationFilter}
+                </p>
+              )}
+            </div>
+
+            <table className="w-full border-collapse text-[8px] table-fixed">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="border px-1 py-1 text-left w-[18%]">Date</th>
+                  <th className="border px-1 py-1 text-left w-[22%]">Item</th>
+                  <th className="border px-1 py-1 text-left w-[16%]">Brand</th>
+                  <th className="border px-1 py-1 text-left w-[16%]">Station</th>
+                  <th className="border px-1 py-1 text-center w-[9%]">Qty</th>
+                  <th className="border px-1 py-1 text-center w-[9%]">Before</th>
+                  <th className="border px-1 py-1 text-center w-[10%]">After</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {auditHistory.map((record, index) => (
+                  <tr key={index} className="align-top">
+                    <td className="border px-1 py-1 wrap-break-words">
+                      {new Date(record.released_at).toLocaleString()}
+                    </td>
+
+                    <td className="border px-1 py-1 font-semibold wrap-break-words">
+                      {record.item_name}
+                    </td>
+
+                    <td className="border px-1 py-1 wrap-break-word">
+                      {record.item_brand || 'N/A'}
+                    </td>
+
+                    <td className="border px-1 py-1 wrap-break-words">
+                      {record.station_name}
+                    </td>
+
+                    <td className="border px-1 py-1 text-center">
+                      {record.quantity_released}
+                    </td>
+
+                    <td className="border px-1 py-1 text-center">
+                      {record.quantity_before}
+                    </td>
+
+                    <td className="border px-1 py-1 text-center">
+                      {record.quantity_after}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div className="flex justify-between mt-16">
+              <div>
+                <p className="text-[11px] font-semibold">Prepared By:</p>
+                <div className="w-52 border-b border-black mt-10"></div>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-semibold">Approved By:</p>
+                <div className="w-52 border-b border-black mt-10"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
       </main>
     </div>
   )

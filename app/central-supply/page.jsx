@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, Edit2, Trash2, Send } from 'lucide-react'
+import { Plus, Edit2, Trash2, Send, Package } from 'lucide-react'
 import AddItemModal from './add-item-modal'
 import EditItemModal from './edit-item-modal'
 import ReleaseSupplyModal from './release-supply-modal'
+import ResupplyModal from './resupply-modal'
 
 export default function CentralSupplyPage() {
   const router = useRouter()
@@ -36,6 +37,7 @@ export default function CentralSupplyPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showReleaseModal, setShowReleaseModal] = useState(false)
+  const [showResupplyModal, setShowResupplyModal] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortOrder, setSortOrder] = useState('asc');
@@ -241,6 +243,16 @@ export default function CentralSupplyPage() {
                               <button
                                 onClick={() => {
                                   setSelectedItem(item)
+                                  setShowResupplyModal(true)
+                                }}
+                                className="p-2 hover:bg-accent/20 rounded-lg transition-colors"
+                                title="Re-supply"
+                              >
+                                <Package className="w-4 h-4 text-accent" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedItem(item)
                                   setShowEditModal(true)
                                 }}
                                 className="p-2 hover:bg-primary/20 rounded-lg transition-colors"
@@ -283,6 +295,16 @@ export default function CentralSupplyPage() {
             setSelectedItem(null)
           }}
           onSubmit={handleEditItem}
+        />
+      )}
+      {showResupplyModal && selectedItem && (
+        <ResupplyModal
+          item={selectedItem}
+          onClose={() => {
+            setShowResupplyModal(false)
+            setSelectedItem(null)
+          }}
+          onSubmit={fetchData}
         />
       )}
       {showReleaseModal && (
