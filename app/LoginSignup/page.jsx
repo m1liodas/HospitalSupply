@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 import styles from './loginstyle.module.css'
@@ -21,6 +21,12 @@ export default function LoginSignup() {
   const [showSuccess, setShowSuccess] = useState(false)
   const [showAdminModal, setShowAdminModal] = useState(false)
   const [adminPassword, setAdminPassword] = useState('')
+
+  useEffect(() => {
+    setUsername('')
+    setPassword('')
+    setConfirmPassword('')
+  }, [])
 
   const handleSubmit = async () => {
 
@@ -213,6 +219,7 @@ export default function LoginSignup() {
         )}
 
         <form
+          autoComplete="off"
           onSubmit={(e) => {
             e.preventDefault()
             handleSubmit()
@@ -230,6 +237,8 @@ export default function LoginSignup() {
 
               <input
                 type='text'
+                name='username'
+                autoComplete='new-password'
                 placeholder='Username'
                 value={username}
                 onChange={(e) => {
@@ -249,6 +258,8 @@ export default function LoginSignup() {
 
               <input
                 type='password'
+                name='password'
+                autoComplete='new-password'
                 placeholder='Password'
                 value={password}
                 onChange={(e) => {
@@ -271,6 +282,7 @@ export default function LoginSignup() {
 
                   <input
                     type='password'
+                    autoComplete='off'
                     placeholder='Confirm Password'
                     value={confirmPassword}
                     onChange={(e) => {
