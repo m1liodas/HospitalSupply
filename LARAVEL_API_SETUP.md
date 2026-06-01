@@ -372,7 +372,7 @@ Add to `.env`:
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=medical_supply_inventory
+DB_DATABASE=medsupply
 DB_USERNAME=root
 DB_PASSWORD=
 ```

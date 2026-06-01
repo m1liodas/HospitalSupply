@@ -16,6 +16,12 @@ export default function ERStationPage() {
   const [editingCells, setEditingCells] = useState(new Set())
   const [tempValues, setTempValues] = useState({})
 
+  // Dynamic month/year and days
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonthName = now.toLocaleString(undefined, { month: 'long' })
+  const daysInMonth = new Date(currentYear, now.getMonth() + 1, 0).getDate()
+
   useEffect(() => {
     fetchData()
   }, [])
@@ -33,7 +39,7 @@ export default function ERStationPage() {
       const itemsData = await itemsRes.json()
 
       setReleases(releasesData.filter((r) => r.station_id === STATION_ID))
-      setUsages(usagesData.slice(0, 31))
+      setUsages(usagesData.slice(0, daysInMonth))
       setItems(itemsData)
     } catch (error) {
       console.error('Failed to fetch data:', error)
@@ -98,7 +104,7 @@ export default function ERStationPage() {
     )
   }
 
-  const days = Array.from({ length: 31 }, (_, i) => i)
+  const days = Array.from({ length: daysInMonth }, (_, i) => i)
 
   return (
     <div className="min-h-screen bg-background">
@@ -106,7 +112,7 @@ export default function ERStationPage() {
       <main className="p-8 max-w-full">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">ER Station Supply Tracking</h1>
-          <p className="text-foreground/60">Daily AM/PM usage monitoring for May 2024</p>
+          <p className="text-foreground/60">Daily AM/PM usage monitoring for {currentMonthName} {currentYear}</p>
         </div>
 
         <Card className="mb-8">
@@ -135,7 +141,7 @@ export default function ERStationPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-accent" />
-              Daily Usage Tracking (May 1-31)
+              {`Daily Usage Tracking (${currentMonthName} 1-${daysInMonth})`}
             </CardTitle>
             <CardDescription>Enter AM/PM usage quantities and save to update inventory</CardDescription>
           </CardHeader>

@@ -22,6 +22,15 @@ export default function ERStationPage() {
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState({ isOpen: false, day: null, itemId: null, type: null, currentValue: 0, itemName: '' })
   const [inputValue, setInputValue] = useState(0)
+  const [lastUpdated, setLastUpdated] = useState(null)
+  const POLL_INTERVAL_MS = 10000
+
+  // Dynamic month/year and days (available early for fetchData)
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonthName = now.toLocaleString(undefined, { month: 'long' })
+  const daysInMonth = new Date(currentYear, now.getMonth() + 1, 0).getDate()
+  const days = Array.from({ length: daysInMonth }, (_, i) => i)
 
   useEffect(() => {
     const role = localStorage.getItem('userRole')
@@ -44,6 +53,13 @@ export default function ERStationPage() {
 
     if (station) {
       fetchData()
+      const timer = setInterval(fetchData, POLL_INTERVAL_MS)
+      window.addEventListener('focus', fetchData)
+
+      return () => {
+        clearInterval(timer)
+        window.removeEventListener('focus', fetchData)
+      }
     }
   }, [station, router])
 
@@ -69,8 +85,9 @@ export default function ERStationPage() {
       const itemsData = await itemsRes.json()
 
       setReleases(releasesData)
-      setUsages(usagesData.slice(0, 31))
+      setUsages(usagesData.slice(0, daysInMonth))
       setItems(itemsData)
+      setLastUpdated(new Date().toLocaleTimeString())
     } catch (error) {
       console.error('Failed to fetch data:', error)
       alert(`Failed to load station data: ${error.message}`)
@@ -101,9 +118,11 @@ export default function ERStationPage() {
           new Date(u.usage_date).getDate() === day + 1
       )
 
-      // CREATE DATE
-      const usageDate =
-        `2024-05-${String(day + 1).padStart(2, '0')}`
+      // CREATE DATE using current year/month
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const usageDate = `${year}-${month}-${String(day + 1).padStart(2, '0')}`
 
       // KEEP OTHER VALUE
       const amQty =
@@ -166,7 +185,7 @@ export default function ERStationPage() {
     )
   }
 
-  const days = Array.from({ length: 31 }, (_, i) => i)
+  
 
   const STATION_LABELS = {
     dr: 'DR',
@@ -182,20 +201,23 @@ export default function ERStationPage() {
 
   const stationLabel = STATION_LABELS[station?.toLowerCase()] || (station || '').toUpperCase()
 
+  
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="p-8 max-w-full">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">{stationLabel} Station Supply Tracking</h1>
-          <p className="text-foreground/60">Daily AM/PM usage monitoring for May 2024</p>
+          <p className="text-foreground/60">Daily AM/PM usage monitoring for {currentMonthName} {currentYear}</p>
+          <p className="text-sm text-foreground/70">Auto refresh every 10s{lastUpdated ? ` · Updated ${lastUpdated}` : ''}</p>
         </div>
 
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-accent" />
-              Daily Usage Tracking (May 1-31)
+              {`Daily Usage Tracking (${currentMonthName} 1-${daysInMonth})`}
             </CardTitle>
             <CardDescription>Enter AM/PM usage quantities and save to update inventory</CardDescription>
           </CardHeader>

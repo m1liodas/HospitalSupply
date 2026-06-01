@@ -6,7 +6,6 @@ export interface Item {
   name: string
   brand: string
   quantity: string
-  cost_price: number
   selling_price: number
   expiration_date: string
   created_at: string
