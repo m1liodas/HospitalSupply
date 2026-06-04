@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { fetchJson } from '@/lib/fetcher'
 
 import styles from './loginstyle.module.css'
 
@@ -43,32 +44,34 @@ export default function LoginSignup() {
 
     const apiAction = action === 'Sign Up' ? 'signup' : 'login'
 
-    const response = await fetch('/api/auth', {
+    let data = null
 
-      method: 'POST',
+    try {
+      data = await fetchJson('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: apiAction,
+          username,
+          password,
+          role,
+        }),
+      })
 
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      if (!data?.success) {
+        setError(data?.message || 'Invalid response from server')
+        return
+      }
 
-      body: JSON.stringify({
-        action: apiAction,
-        username,
-        password,
-        role
-      }),
-
-    })
-
-    const data = await response.json()
-
-    if (!data.success) {
-      setError(data.message)
+      setError('')
+      setShowSuccess(true)
+    } catch (error) {
+      console.error('Authentication error:', error)
+      setError(error.message || 'Unable to contact the server. Please try again.')
       return
     }
-
-    setError('')
-    setShowSuccess(true)
 
     if (action === 'Login') {
 

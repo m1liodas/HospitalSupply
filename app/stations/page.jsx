@@ -6,6 +6,7 @@ import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { ArrowRight, Building2 } from 'lucide-react'
+import { fetchJson } from '@/lib/fetcher'
 
 const STATION_ROUTES = {
   'ER': '/stations/er',
@@ -23,6 +24,7 @@ export default function StationsPage() {
   const router = useRouter()
   const [stations, setStations] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('loggedIn')
@@ -46,11 +48,12 @@ export default function StationsPage() {
 
   const fetchStations = async () => {
     try {
-      const res = await fetch('/api/stations')
-      const data = await res.json()
+      setError('')
+      const data = await fetchJson('/api/stations')
       setStations(data)
     } catch (error) {
       console.error('Failed to fetch stations:', error)
+      setError('Unable to load station list. Please refresh the page.')
     } finally {
       setLoading(false)
     }
@@ -76,6 +79,11 @@ export default function StationsPage() {
           <p className="text-foreground/60">Select a station to view and track daily supplies usage</p>
         </div>
 
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {stations.map((station) => {
             const route = STATION_ROUTES[station.name] || '#'

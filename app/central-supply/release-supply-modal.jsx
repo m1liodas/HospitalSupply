@@ -26,15 +26,15 @@ export default function ReleaseSupplyModal({
 
     try {
 
-      const res = await fetch('/api/stations')
-
-      const data = await res.json()
+      const data = await fetchJson('/api/stations')
 
       setStations(data)
 
     } catch (error) {
 
       console.error('Failed to fetch stations:', error)
+
+      alert('Unable to load stations. Please refresh the page.')
 
     } finally {
 
@@ -142,7 +142,7 @@ export default function ReleaseSupplyModal({
       const stationObj = stations.find(s => s.id === Number(selectedStation))
       const stationSlug = stationObj ? String(stationObj.name).toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-') : null
 
-      const res = await fetch('/api/releases', {
+      const data = await fetchJson('/api/releases', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,32 +153,22 @@ export default function ReleaseSupplyModal({
         }),
       })
 
-      const data = await res.json()
+      alert(data.message || 'Supplies released successfully')
 
-      if (res.ok) {
+      setReleaseItems([])
+      setSelectedStation('')
 
-        alert(data.message || 'Supplies released successfully')
-
-        setReleaseItems([])
-
-        setSelectedStation('')
-
-        if (onSuccess) {
-          await onSuccess()
-        }
-
-        onClose()
-
-      } else {
-
-        alert(data.message || 'Failed to release supplies')
+      if (onSuccess) {
+        await onSuccess()
       }
+
+      onClose()
 
     } catch (error) {
 
       console.log('RELEASE ERROR:', error)
 
-      alert(error.message)
+      alert(error.message || 'Failed to release supplies')
     }
   }
 

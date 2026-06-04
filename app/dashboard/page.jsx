@@ -5,11 +5,13 @@ import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, Package, DollarSign, Percent, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { fetchJson } from '@/lib/fetcher'
 
 export default function DashboardPage() {
   const router = useRouter()
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [lastUpdated, setLastUpdated] = useState(null)
   const POLL_INTERVAL_MS = 10000
 
@@ -35,12 +37,13 @@ export default function DashboardPage() {
 
   const fetchSummary = async () => {
       try {
-        const res = await fetch('/api/dashboard')
-        const data = await res.json()
+        setError('')
+        const data = await fetchJson('/api/dashboard')
         setSummary(data)
         setLastUpdated(new Date().toLocaleTimeString())
       } catch (error) {
         console.error('Failed to fetch dashboard:', error)
+        setError('Unable to load dashboard data. Please refresh the page.')
       } finally {
         setLoading(false)
       }
@@ -92,6 +95,11 @@ export default function DashboardPage() {
             Auto refresh every 10s{lastUpdated ? ` · Updated ${lastUpdated}` : ''}
           </p>
         </div>
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
