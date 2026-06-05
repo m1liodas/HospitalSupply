@@ -349,7 +349,14 @@ export default function ERStationPage() {
                 <tr>
                   <td>${release.name}</td>
                   <td>${release.quantity ?? release.quantity_released ?? 0}</td>
-                  <td style="color: #0284c7; font-weight: 600;">${release.quantity_remaining ?? 0}</td>
+                  <td style="color: #0284c7; font-weight: 600;">
+                    ${(() => {
+                      const itemUsages = usages.filter(u => u.item_id === release.id);
+                      if (itemUsages.length === 0) return 0;
+                      const lastUsageWithRemaining = itemUsages.find(u => u.remaining_quantity !== undefined && u.remaining_quantity !== null);
+                      return lastUsageWithRemaining?.remaining_quantity ?? itemUsages[itemUsages.length - 1]?.remaining_quantity ?? 0;
+                    })()}
+                  </td>
                   ${days.map(day => {
                     const usage = usages.find(u =>
                       u.item_id === release.id &&
@@ -366,7 +373,13 @@ export default function ERStationPage() {
           
           <div class="summary">
             <strong>Report Summary:</strong><br>
-            Total Items: ${releases.length} | Total Remaining Units: ${releases.reduce((sum, r) => sum + (r.quantity_remaining ?? 0), 0)} | 
+            Total Items: ${releases.length} | Total Remaining Units: ${releases.reduce((sum, r) => {
+              const itemUsages = usages.filter(u => u.item_id === r.id);
+              if (itemUsages.length === 0) return sum;
+              const lastUsageWithRemaining = itemUsages.find(u => u.remaining_quantity !== undefined && u.remaining_quantity !== null);
+              const remaining = lastUsageWithRemaining?.remaining_quantity ?? itemUsages[itemUsages.length - 1]?.remaining_quantity ?? 0;
+              return sum + remaining;
+            }, 0)} | 
             Report Generated: ${reportDate}
           </div>
           
@@ -589,7 +602,15 @@ export default function ERStationPage() {
                         {release.quantity ?? release.quantity_released ?? 0}
                       </td>
                       <td className="border border-border px-2 py-2 text-center font-semibold text-primary">
-                        {release.quantity_remaining ?? 0}
+                        {isArchive 
+                          ? (() => {
+                              const itemUsages = usages.filter(u => u.item_id === release.id)
+                              if (itemUsages.length === 0) return 0
+                              const lastUsageWithRemaining = itemUsages.find(u => u.remaining_quantity !== undefined && u.remaining_quantity !== null)
+                              return lastUsageWithRemaining?.remaining_quantity ?? itemUsages[itemUsages.length - 1]?.remaining_quantity ?? 0
+                            })()
+                          : (release.quantity_remaining ?? 0)
+                        }
                       </td>
                       {days.map((day) => {
                         const usage = usages.find(
@@ -646,7 +667,17 @@ export default function ERStationPage() {
                   <div className="space-y-1 text-sm text-foreground/70">
                     <div>Brand: <span className="text-foreground">{release.brand}</span></div>
                     <div>Qty Received: <span className="font-medium text-foreground">{release.quantity ?? release.quantity_released ?? 0} units</span></div>
-                    <div>Remaining: <span className="font-medium text-primary">{release.quantity_remaining ?? 0} units</span></div>
+                    <div>Remaining: <span className="font-medium text-primary">
+                    {isArchive 
+                      ? (() => {
+                          const itemUsages = usages.filter(u => u.item_id === release.id)
+                          if (itemUsages.length === 0) return 0
+                          const lastUsageWithRemaining = itemUsages.find(u => u.remaining_quantity !== undefined && u.remaining_quantity !== null)
+                          return lastUsageWithRemaining?.remaining_quantity ?? itemUsages[itemUsages.length - 1]?.remaining_quantity ?? 0
+                        })()
+                      : (release.quantity_remaining ?? 0)
+                    }
+                  </span> units</div>
                     <div>Date Received: <span className="text-foreground/60">{release.date_receive ? new Date(release.date_receive).toLocaleDateString() : release.released_at ? new Date(release.released_at).toLocaleDateString() : ''}</span></div>
                   </div>
                 </div>

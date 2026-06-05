@@ -145,6 +145,8 @@ export async function POST(request: NextRequest) {
 
     const currentRemaining =
       stationRows[0].quantity_remaining || 0
+    const quantityReceived =
+      stationRows[0].quantity || 0
 
     // RESTORE OLD VALUES
     const restoredStock =
@@ -244,7 +246,42 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // no-op, using shared pool
+    // Also save to usage_logs_archive if it exists and we're saving a quantity
+    try {
+      const [archiveExists]: any = await db.execute(
+        `SELECT 1 FROM usage_logs_archive WHERE item_id = ? AND usage_date = ? AND stations_id = ? LIMIT 1`,
+        [item_id, usage_date, stationSlug]
+      )
+
+      if (archiveExists && archiveExists.length > 0) {
+        // Update archive record with remaining quantity
+        await db.execute(
+          `
+          UPDATE usage_logs_archive
+          SET 
+            am_quantity = ?,
+            pm_quantity = ?,
+            remaining_quantity = ?,
+            quantity_received = ?
+          WHERE item_id = ?
+          AND usage_date = ?
+          AND stations_id = ?
+          `,
+          [
+            am_quantity,
+            pm_quantity,
+            newRemaining,
+            quantityReceived,
+            item_id,
+            usage_date,
+            stationSlug
+          ]
+        )
+      }
+    } catch (archiveError) {
+      // Silently continue if archive table doesn't have the columns yet
+      console.log('[Services] Archive table update skipped (table may not have updated schema)')
+    }
 
     return NextResponse.json({
       message: 'Usage saved successfully',
