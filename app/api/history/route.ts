@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const month = searchParams.get('month')
     const stationName = searchParams.get('station_name')
 
-    let query = `SELECT sh.*, i.name as item_name, i.brand as item_brand FROM supply_history sh LEFT JOIN items i ON i.id = sh.item_id WHERE 1=1`
+    let query = `SELECT sh.*, i.name as item_name, i.brand as item_brand FROM supply_history sh LEFT JOIN items i ON i.items_id = sh.item_id WHERE 1=1`
     const params: any[] = []
 
     if (month) {

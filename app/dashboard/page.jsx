@@ -9,7 +9,16 @@ import { fetchJson } from '@/lib/fetcher'
 
 export default function DashboardPage() {
   const router = useRouter()
-  const [summary, setSummary] = useState(null)
+  const [summary, setSummary] = useState({
+    total_items: 0,
+    total_inventory_value: 0,
+    total_income: 0,
+    total_profit: 0,
+    total_profit_margin: 0,
+    stations_overview: [],
+    top_used_items: [],
+    items_near_expiration: [],
+  })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [lastUpdated, setLastUpdated] = useState(null)
@@ -156,7 +165,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {summary?.stations_overview.map((station) => (
+              {(Array.isArray(summary?.stations_overview) ? summary.stations_overview : []).map((station) => (
                 <div
                   key={station.station_id}
                   role="button"
@@ -193,7 +202,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {summary?.top_used_items.map((item) => (
+                {(Array.isArray(summary?.top_used_items) ? summary.top_used_items : []).map((item) => (
                   <div key={item.item_id} className="flex items-between justify-between pb-3 border-b border-border last:border-0">
                     <div>
                       <p className="font-medium text-foreground">{item.name}</p>
@@ -221,7 +230,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {summary?.items_near_expiration.map((item) => (
+                {(Array.isArray(summary?.items_near_expiration) ? summary.items_near_expiration : []).map((item) => (
                   <div key={item.id} className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
                     <p className="font-medium text-foreground">{item.name}</p>
                     <div className="flex justify-between items-end mt-1">

@@ -18,18 +18,25 @@ ALTER TABLE surgical_station ADD COLUMN IF NOT EXISTS current_period VARCHAR(7) 
 
 -- Create archive tables for previous months
 CREATE TABLE IF NOT EXISTS usage_logs_archive (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  usage_logs_archive_id INT AUTO_INCREMENT PRIMARY KEY,
   item_id INT NOT NULL,
   usage_date DATE NOT NULL,
   am_quantity INT DEFAULT 0,
   pm_quantity INT DEFAULT 0,
   month_year VARCHAR(7) NOT NULL,
+  stations_id VARCHAR(255) DEFAULT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE usage_logs ADD COLUMN IF NOT EXISTS stations_id VARCHAR(255) DEFAULT NULL;
+
+-- If you want to rename primary key columns on existing tables, do so carefully in a controlled migration.
+-- Example: ALTER TABLE usage_logs_archive CHANGE COLUMN id usage_logs_archive_id INT AUTO_INCREMENT PRIMARY KEY;
+-- Example: ALTER TABLE station_period_history CHANGE COLUMN id station_p_history_id INT AUTO_INCREMENT PRIMARY KEY;
+
 -- Create station history table to track snapshots at each month
 CREATE TABLE IF NOT EXISTS station_period_history (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  station_p_history_id INT AUTO_INCREMENT PRIMARY KEY,
   station_name VARCHAR(255) NOT NULL,
   item_id INT NOT NULL,
   item_name VARCHAR(255) NOT NULL,
@@ -40,6 +47,8 @@ CREATE TABLE IF NOT EXISTS station_period_history (
   month_year VARCHAR(7) NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- If you want to rename the existing station_period_history primary key, do so in a dedicated schema migration.
 
 -- Add index for faster queries
 CREATE INDEX IF NOT EXISTS idx_usage_logs_month ON usage_logs(month_year);

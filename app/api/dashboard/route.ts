@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
           0
         ) as total_income
        FROM supply_history sh
-       LEFT JOIN items i ON i.id = sh.item_id`
+       LEFT JOIN items i ON i.items_id = sh.item_id`
     )
 
     // Total Cost
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
           0
         ) as total_cost
        FROM supply_history sh
-       LEFT JOIN items i ON i.id = sh.item_id`
+       LEFT JOIN items i ON i.items_id = sh.item_id`
     )
 
     const totalProfit =
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
           ) AS income
        FROM supply_history sh
        LEFT JOIN items i
-       ON i.id = sh.item_id
+       ON i.items_id = sh.item_id
        GROUP BY sh.item_id
        ORDER BY quantity_used DESC
        LIMIT 5`

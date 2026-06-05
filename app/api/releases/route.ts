@@ -3,21 +3,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import db from '@/lib/db'
 
-const STATION_TABLES: Record<string, string> = {
-  dr: 'dr_station',
-  er: 'er_station',
-  medicine: 'medicine_station',
-  nicu: 'nicu_station',
-  'ob-gyne': 'ob_gyne_station',
-  opd: 'opd_station',
-  or: 'or_station',
-  pedia: 'pedia_station',
-  surgical: 'surgical_station',
+const STATION_TABLES: Record<string, { table: string; pk: string }> = {
+  dr: { table: 'dr_station', pk: 'dr_id' },
+  er: { table: 'er_station', pk: 'er_id' },
+  medicine: { table: 'medicine_station', pk: 'medicine_id' },
+  nicu: { table: 'nicu_station', pk: 'nicu_id' },
+  'ob-gyne': { table: 'ob_gyne_station', pk: 'ob_gyne_id' },
+  opd: { table: 'opd_station', pk: 'opd_id' },
+  or: { table: 'or_station', pk: 'or_id' },
+  pedia: { table: 'pedia_station', pk: 'pedia_id' },
+  surgical: { table: 'surgical_station', pk: 'surgical_id' },
 }
 
 export async function GET() {
   try {
-    const [rows] = await db.execute(`SELECT * FROM dr_station ORDER BY id DESC`)
+    const [rows] = await db.execute(`SELECT *, dr_id AS id FROM dr_station ORDER BY dr_id DESC`)
     return NextResponse.json(rows)
   } catch (error) {
     console.error(error)
@@ -35,15 +35,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'No items provided' }, { status: 400 })
     }
 
-    const tableName = STATION_TABLES[String(stationSlug || '').toLowerCase()]
+    const stationConfig = STATION_TABLES[String(stationSlug || '').toLowerCase()]
 
-    if (!tableName) {
+    if (!stationConfig) {
       return NextResponse.json({ message: 'Missing or unknown station' }, { status: 400 })
     }
 
+    const { table: tableName, pk: tablePk } = stationConfig
+
     for (const item of items) {
       // GET ITEM FROM ITEMS TABLE
-      const [rows]: any = await db.execute(`SELECT * FROM items WHERE id = ?`, [item.item_id])
+      const [rows]: any = await db.execute(`SELECT *, items_id AS id FROM items WHERE items_id = ?`, [item.item_id])
 
       if (rows.length === 0) {
         continue
@@ -61,14 +63,14 @@ export async function POST(request: NextRequest) {
 
       // CHECK IF ITEM ALREADY EXISTS IN TARGET STATION
       const [existingRows]: any = await db.execute(
-        `SELECT * FROM ${tableName} WHERE name = ? AND brand = ?`,
+        `SELECT *, ${tablePk} AS id FROM ${tableName} WHERE name = ? AND brand = ?`,
         [itemData.name, itemData.brand]
       )
 
       // IF ITEM EXISTS -> UPDATE
       if (existingRows.length > 0) {
         await db.execute(
-          `UPDATE ${tableName} SET quantity = quantity + ?, quantity_remaining = quantity_remaining + ? WHERE id = ?`,
+          `UPDATE ${tableName} SET quantity = quantity + ?, quantity_remaining = quantity_remaining + ? WHERE ${stationConfig.pk} = ?`,
           [item.quantity, item.quantity, existingRows[0].id]
         )
       } else {
@@ -80,7 +82,7 @@ export async function POST(request: NextRequest) {
       }
 
       // DEDUCT FROM MAIN INVENTORY
-      await db.execute(`UPDATE items SET quantity = quantity - ? WHERE id = ?`, [item.quantity, item.item_id])
+      await db.execute(`UPDATE items SET quantity = quantity - ? WHERE items_id = ?`, [item.quantity, item.item_id])
 
       // LOG TO SUPPLY HISTORY TABLE FOR AUDIT
       await db.execute(

@@ -80,9 +80,12 @@ export default function ERStationPage() {
 
   const fetchData = async () => {
     try {
+      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+      const targetPeriod = selectedPeriod || currentMonth
+
       const [releasesRes, usagesRes, itemsRes] = await Promise.all([
         fetch(`/api/stations-data/wards-stations/${station}`),
-        fetch('/api/usage'),
+        fetch(`/api/usage?station=${encodeURIComponent(station)}&month_year=${encodeURIComponent(targetPeriod)}`),
         fetch('/api/items'),
       ])
 
@@ -111,6 +114,8 @@ export default function ERStationPage() {
     }
   }
 
+  const isArchiveReadOnly = isArchive
+
   const openModal = (day, itemId, type, currentValue, itemName) => {
     setModal({ isOpen: true, day, itemId, type, currentValue, itemName })
     setInputValue(currentValue)
@@ -123,7 +128,16 @@ export default function ERStationPage() {
   const fetchAvailablePeriods = async () => {
     try {
       const data = await fetchJson(`/api/station-monthly-entry?station=${station}`)
-      setAvailablePeriods(data.periods || [])
+      const uniquePeriods = Array.from(
+        new Map(
+          (data.periods || []).map(period => [
+            period.month_year,
+            period
+          ])
+        ).values()
+      )
+
+      setAvailablePeriods(uniquePeriods)
       setSelectedPeriod(data.currentMonth)
     } catch (error) {
       console.error('Failed to fetch periods:', error)
@@ -162,6 +176,10 @@ export default function ERStationPage() {
   }
 
   const saveUsage = async () => {
+    if (isArchive) {
+      alert('Archive period is read-only. Select Current Month to add or update usage.')
+      return
+    }
 
     const { day, itemId, type } = modal
 
@@ -367,15 +385,15 @@ export default function ERStationPage() {
                           <td key={`${day}-${release.id}`} className="border border-border p-1">
                             <div className="flex gap-0.5">
                               <button
-                                onClick={() => openModal(day, release.id, 'am', usage?.am_quantity || 0, release.name)}
-                                className="flex-1 px-1 py-1 bg-blue-50 border border-blue-200 rounded text-xs hover:bg-blue-100 text-center font-medium text-foreground/80 transition-colors cursor-pointer"
+                                onClick={() => isArchiveReadOnly ? null : openModal(day, release.id, 'am', usage?.am_quantity || 0, release.name)}
+                                className={`flex-1 px-1 py-1 rounded text-xs text-center font-medium transition-colors ${isArchiveReadOnly ? 'bg-slate-100 border border-slate-200 text-foreground/40 cursor-not-allowed' : 'bg-blue-50 border border-blue-200 hover:bg-blue-100 text-foreground/80 cursor-pointer'}`}
                               >
                                 {usage?.am_quantity || 0}
                               </button>
 
                               <button
-                                onClick={() => openModal(day, release.id, 'pm', usage?.pm_quantity || 0, release.name)}
-                                className="flex-1 px-1 py-1 bg-orange-50 border border-orange-200 rounded text-xs hover:bg-orange-100 text-center font-medium text-foreground/80 transition-colors cursor-pointer"
+                                onClick={() => isArchiveReadOnly ? null : openModal(day, release.id, 'pm', usage?.pm_quantity || 0, release.name)}
+                                className={`flex-1 px-1 py-1 rounded text-xs text-center font-medium transition-colors ${isArchiveReadOnly ? 'bg-slate-100 border border-slate-200 text-foreground/40 cursor-not-allowed' : 'bg-orange-50 border border-orange-200 hover:bg-orange-100 text-foreground/80 cursor-pointer'}`}
                               >
                                 {usage?.pm_quantity || 0}
                               </button>

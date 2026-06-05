@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import db from '@/lib/db'
 
-const STATION_TABLES: Record<string, string> = {
-  dr: 'dr_station',
-  er: 'er_station',
-  medicine: 'medicine_station',
-  nicu: 'nicu_station',
-  'ob-gyne': 'ob_gyne_station',
-  opd: 'opd_station',
-  or: 'or_station',
-  pedia: 'pedia_station',
-  surgical: 'surgical_station',
+const STATION_TABLES: Record<string, { table: string; pk: string }> = {
+  dr: { table: 'dr_station', pk: 'dr_id' },
+  er: { table: 'er_station', pk: 'er_id' },
+  medicine: { table: 'medicine_station', pk: 'medicine_id' },
+  nicu: { table: 'nicu_station', pk: 'nicu_id' },
+  'ob-gyne': { table: 'ob_gyne_station', pk: 'ob_gyne_id' },
+  opd: { table: 'opd_station', pk: 'opd_id' },
+  or: { table: 'or_station', pk: 'or_id' },
+  pedia: { table: 'pedia_station', pk: 'pedia_id' },
+  surgical: { table: 'surgical_station', pk: 'surgical_id' },
 }
 
 /**
@@ -26,24 +26,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Station parameter required' }, { status: 400 })
     }
 
-    // Get current month data from usage_logs
     const now = new Date()
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 
-    // Fetch current month data
-    const [currentData]: any = await db.execute(`
-      SELECT * FROM usage_logs 
-      WHERE month_year = ? OR month_year IS NULL
-      ORDER BY usage_date ASC
-    `, [currentMonth])
-
-    // Fetch last 3 months from archive
-    const [archiveData]: any = await db.execute(`
-      SELECT DISTINCT month_year FROM usage_logs_archive
-      WHERE month_year IS NOT NULL
-      ORDER BY month_year DESC
-      LIMIT 3
-    `)
+    // Fetch last 3 months from archive for this station only
+    let archiveData: any = []
+    try {
+      const [rows]: any = await db.execute(`
+        SELECT DISTINCT month_year FROM usage_logs_archive
+        WHERE month_year IS NOT NULL
+        AND stations_id = ?
+        ORDER BY month_year DESC
+        LIMIT 3
+      `, [station])
+      archiveData = rows
+    } catch (error: any) {
+      if (error?.message?.includes("Unknown column 'stations_id'")) {
+        const [rows]: any = await db.execute(`
+          SELECT DISTINCT month_year FROM usage_logs_archive
+          WHERE month_year IS NOT NULL
+          ORDER BY month_year DESC
+          LIMIT 3
+        `)
+        archiveData = rows
+      } else {
+        throw error
+      }
+    }
 
     const periods = [
       { month_year: currentMonth, label: 'Current Month', isArchive: false },
@@ -75,17 +84,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Station parameter required' }, { status: 400 })
     }
 
-    const tableName = STATION_TABLES[String(stationSlug || '').toLowerCase()]
+    const stationConfig = STATION_TABLES[String(stationSlug || '').toLowerCase()]
 
-    if (!tableName) {
+    if (!stationConfig) {
       return NextResponse.json({ message: 'Unknown station' }, { status: 400 })
     }
+
+    const { table: tableName, pk: tablePk } = stationConfig
 
     const now = new Date()
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 
     // 1. Get all current items and usage data for this station
-    const [stationItems]: any = await db.execute(`SELECT * FROM ${tableName}`)
+    const [stationItems]: any = await db.execute(`SELECT *, ${tablePk} AS id FROM ${tableName}`)
 
     // 2. Archive the current usage logs and station state
     for (const item of stationItems) {
@@ -106,12 +117,28 @@ export async function POST(request: NextRequest) {
       ])
 
       // Move usage logs to archive
-      await db.execute(`
-        INSERT INTO usage_logs_archive (item_id, usage_date, am_quantity, pm_quantity, month_year)
-        SELECT item_id, usage_date, am_quantity, pm_quantity, ?
-        FROM usage_logs
-        WHERE item_id = ? AND (month_year IS NULL OR month_year = ?)
-      `, [currentMonth, item.id, currentMonth])
+      try {
+        await db.execute(`
+          INSERT INTO usage_logs_archive (item_id, usage_date, am_quantity, pm_quantity, month_year, stations_id)
+          SELECT item_id, usage_date, am_quantity, pm_quantity, ?, ?
+          FROM usage_logs
+          WHERE item_id = ?
+          AND (month_year IS NULL OR month_year = ?)
+          AND (stations_id = ? OR stations_id IS NULL)
+        `, [currentMonth, stationSlug, item.id, currentMonth, stationSlug])
+      } catch (error: any) {
+        if (error?.message?.includes("Unknown column 'stations_id'")) {
+          await db.execute(`
+            INSERT INTO usage_logs_archive (item_id, usage_date, am_quantity, pm_quantity, month_year)
+            SELECT item_id, usage_date, am_quantity, pm_quantity, ?
+            FROM usage_logs
+            WHERE item_id = ?
+            AND (month_year IS NULL OR month_year = ?)
+          `, [currentMonth, item.id, currentMonth])
+        } else {
+          throw error
+        }
+      }
     }
 
     // 3. Clear usage logs for current month

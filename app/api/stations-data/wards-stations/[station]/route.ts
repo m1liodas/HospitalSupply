@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import db from '@/lib/db'
 
-const STATION_TABLES: Record<string, string> = {
-  dr: 'dr_station',
-  er: 'er_station',
-  medicine: 'medicine_station',
-  nicu: 'nicu_station',
-  'ob-gyne': 'ob_gyne_station',
-  opd: 'opd_station',
-  or: 'or_station',
-  pedia: 'pedia_station',
-  surgical: 'surgical_station',
+const STATION_TABLES: Record<string, { table: string; pk: string }> = {
+  dr: { table: 'dr_station', pk: 'dr_id' },
+  er: { table: 'er_station', pk: 'er_id' },
+  medicine: { table: 'medicine_station', pk: 'medicine_id' },
+  nicu: { table: 'nicu_station', pk: 'nicu_id' },
+  'ob-gyne': { table: 'ob_gyne_station', pk: 'ob_gyne_id' },
+  opd: { table: 'opd_station', pk: 'opd_id' },
+  or: { table: 'or_station', pk: 'or_id' },
+  pedia: { table: 'pedia_station', pk: 'pedia_id' },
+  surgical: { table: 'surgical_station', pk: 'surgical_id' },
 }
 
 export async function GET(
@@ -21,13 +21,15 @@ export async function GET(
     const { station } = await params
     const slug = String(station || '').toLowerCase()
 
-    const tableName = STATION_TABLES[slug]
+    const stationConfig = STATION_TABLES[slug]
 
-    if (!tableName) {
+    if (!stationConfig) {
       return NextResponse.json({ message: 'Unknown station' }, { status: 404 })
     }
 
-    const [rows] = await db.query(`SELECT * FROM ${tableName} ORDER BY id DESC`)
+    const { table: tableName, pk: tablePk } = stationConfig
+
+    const [rows] = await db.query(`SELECT *, ${tablePk} AS id FROM ${tableName} ORDER BY ${tablePk} DESC`)
 
     return NextResponse.json(rows)
   } catch (error) {

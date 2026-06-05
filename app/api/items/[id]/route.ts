@@ -6,7 +6,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const [rows] = await db.execute('SELECT * FROM items WHERE id = ?', [parseInt(await id)])
+  const itemId = parseInt(await id)
+  const [rows] = await db.execute('SELECT *, items_id AS id FROM items WHERE items_id = ?', [itemId])
 
   if (!Array.isArray(rows) || rows.length === 0) {
     return NextResponse.json({ error: 'Item not found' }, { status: 404 })
@@ -24,7 +25,7 @@ export async function PUT(
   const itemId = parseInt(await id)
   
   // Get current item first
-  const [currentRows] = await db.execute('SELECT * FROM items WHERE id = ?', [itemId])
+  const [currentRows] = await db.execute('SELECT *, items_id AS id FROM items WHERE items_id = ?', [itemId])
   if (!Array.isArray(currentRows) || currentRows.length === 0) {
     return NextResponse.json({ error: 'Item not found' }, { status: 404 })
   }
@@ -37,11 +38,11 @@ export async function PUT(
     const newQuantity = parseInt(currentItem.quantity) + additionalQuantity
 
     await db.execute(
-      'UPDATE items SET quantity = ?, updated_at = NOW() WHERE id = ?',
+      'UPDATE items SET quantity = ?, updated_at = NOW() WHERE items_id = ?',
       [newQuantity, itemId]
     )
 
-    const [rows] = await db.execute('SELECT * FROM items WHERE id = ?', [itemId])
+    const [rows] = await db.execute('SELECT *, items_id AS id FROM items WHERE items_id = ?', [itemId])
     return NextResponse.json(rows[0])
   }
 
@@ -50,11 +51,11 @@ export async function PUT(
   const sellingPrice = parseFloat(body.selling_price)
 
   await db.execute(
-    'UPDATE items SET name = ?, brand = ?, quantity = ?, selling_price = ?, expiration_date = ?, updated_at = NOW() WHERE id = ?',
+    'UPDATE items SET name = ?, brand = ?, quantity = ?, selling_price = ?, expiration_date = ?, updated_at = NOW() WHERE items_id = ?',
     [body.name, body.brand, quantity, sellingPrice, body.expiration_date, itemId]
   )
 
-  const [rows] = await db.execute('SELECT * FROM items WHERE id = ?', [itemId])
+  const [rows] = await db.execute('SELECT *, items_id AS id FROM items WHERE items_id = ?', [itemId])
   return NextResponse.json(rows[0])
 }
 
@@ -65,7 +66,7 @@ export async function DELETE(
   const { id } = await params
   const itemId = parseInt(await id)
 
-  const [result] = await db.execute('DELETE FROM items WHERE id = ?', [itemId])
+  const [result] = await db.execute('DELETE FROM items WHERE items_id = ?', [itemId])
 
   if (result.affectedRows === 0) {
     return NextResponse.json({ error: 'Item not found' }, { status: 404 })

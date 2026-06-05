@@ -3,7 +3,7 @@ import db from '@/lib/db'
 
 export async function GET(request) {
   const [rows] = await db.execute(
-    'SELECT id, name, brand, quantity, selling_price, expiration_date, created_at, updated_at FROM items ORDER BY id DESC'
+    'SELECT items_id AS id, name, brand, quantity, selling_price, expiration_date, created_at, updated_at FROM items ORDER BY items_id DESC'
   )
   return NextResponse.json(rows)
 }
@@ -19,6 +19,6 @@ export async function POST(request) {
   )
 
   const insertId = result.insertId
-  const [rows] = await db.execute('SELECT * FROM items WHERE id = ?', [insertId])
+  const [rows] = await db.execute('SELECT *, items_id AS id FROM items WHERE items_id = ?', [insertId])
   return NextResponse.json(rows[0], { status: 201 })
 }
