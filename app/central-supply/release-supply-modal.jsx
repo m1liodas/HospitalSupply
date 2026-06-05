@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { fetchJson } from '@/lib/fetcher'
 
 export default function ReleaseSupplyModal({
   onClose,

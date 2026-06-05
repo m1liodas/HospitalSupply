@@ -117,10 +117,10 @@ export default function StationsPage() {
 
         <Card className="mt-8 bg-accent/10 border-accent/30">
           <CardHeader>
-            <CardTitle className="text-base">Currently Only ER Station Implemented</CardTitle>
+            <CardTitle className="text-base">Select station to display remaining stocks</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-foreground/70">
-            The ER station page is fully functional with daily usage tracking. Other stations can use the same template structure. Click on ER to see the complete implementation.
+            to be develop
           </CardContent>
         </Card>
       </main>

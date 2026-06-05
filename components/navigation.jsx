@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 
 import {
   usePathname,
@@ -79,7 +80,12 @@ export function Navigation() {
 
         <div className="flex items-center gap-2 mr-8">
 
-          <Pill className="w-6 h-6 text-sidebar-primary" />
+          <Image
+            src="/golden-logo.png"
+            alt="Central Supply Logo"
+            width={45}
+            height={45}
+          />
 
           <span className="font-bold text-lg text-sidebar-foreground">
             Central Supply

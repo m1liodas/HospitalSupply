@@ -217,6 +217,154 @@
   transform: scale(0.98);
 }
 
+/* Print Styling */
+@media print {
+  /* Hide navigation and controls */
+  nav,
+  .sticky,
+  .modal-overlay,
+  .modal-content,
+  button:not(.no-print),
+  select,
+  [role="button"],
+  .btn-cancel,
+  .btn-save,
+  .btn-print,
+  [class*="btn-"],
+  [class*="button"] {
+    display: none !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 0.5in;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: white;
+    color: black;
+  }
+
+  /* Hide navigation bar */
+  header,
+  nav,
+  .navigation {
+    display: none !important;
+  }
+
+  /* Hide controls  */
+  main > div:first-child {
+    display: none !important;
+  }
+
+  /* Table styling for print */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    page-break-inside: avoid;
+    margin: 1rem 0;
+  }
+
+  table thead {
+    display: table-header-group;
+    page-break-after: avoid;
+  }
+
+  table tbody {
+    display: table-row-group;
+  }
+
+  table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  thead tr {
+    background-color: #f3f4f6 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  td,
+  th {
+    border: 1px solid #333 !important;
+    padding: 8px !important;
+    text-align: left;
+  }
+
+  th {
+    font-weight: bold;
+    background-color: #e5e7eb !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Card styling */
+  .card,
+  [class*="Card"] {
+    page-break-inside: avoid;
+    border: 1px solid #000 !important;
+    margin-bottom: 1rem;
+  }
+
+  /* Text colors for print */
+  .text-foreground {
+    color: #000 !important;
+  }
+
+  .text-primary {
+    color: #1e40af !important;
+  }
+
+  /* Hide unnecessary elements */
+  [class*="spinner"],
+  [class*="loader"],
+  [class*="refresh"],
+  .modal-overlay {
+    display: none !important;
+  }
+
+  /* Page breaks */
+  .page-break {
+    page-break-before: always;
+  }
+
+  /* Font sizing for print */
+  body {
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  h1 {
+    font-size: 18pt;
+    margin: 0.5in 0;
+  }
+
+  h2 {
+    font-size: 14pt;
+    margin: 0.3in 0;
+  }
+
+  p {
+    margin: 0.1in 0;
+  }
+
+  /* Hide scrollbars and overflow */
+  .overflow-x-auto,
+  .overflow-y-auto {
+    overflow: visible !important;
+  }
+
+  /* Preserve all content */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 640px) {
   .modal-content {

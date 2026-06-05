@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, ChevronLeft, ChevronRight, Printer, RotateCcw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { fetchJson } from '@/lib/fetcher'
 import './station.css'
 
 const normalizeStation = (value) =>
@@ -23,13 +25,25 @@ export default function ERStationPage() {
   const [modal, setModal] = useState({ isOpen: false, day: null, itemId: null, type: null, currentValue: 0, itemName: '' })
   const [inputValue, setInputValue] = useState(0)
   const [lastUpdated, setLastUpdated] = useState(null)
+  const [availablePeriods, setAvailablePeriods] = useState([])
+  const [selectedPeriod, setSelectedPeriod] = useState(null)
+  const [isArchive, setIsArchive] = useState(false)
+  const [archiveHistory, setArchiveHistory] = useState([])
   const POLL_INTERVAL_MS = 10000
 
-  // Dynamic month/year and days (available early for fetchData)
+  // Dynamic month/year and days
   const now = new Date()
   const currentYear = now.getFullYear()
   const currentMonthName = now.toLocaleString(undefined, { month: 'long' })
-  const daysInMonth = new Date(currentYear, now.getMonth() + 1, 0).getDate()
+  
+  // Get display month/year based on selected period
+  const displayDate = selectedPeriod 
+    ? new Date(selectedPeriod + '-01')
+    : now
+  
+  const displayMonthName = displayDate.toLocaleString(undefined, { month: 'long' })
+  const displayYear = displayDate.getFullYear()
+  const daysInMonth = new Date(displayYear, displayDate.getMonth() + 1, 0).getDate()
   const days = Array.from({ length: daysInMonth }, (_, i) => i)
 
   useEffect(() => {
@@ -52,6 +66,7 @@ export default function ERStationPage() {
     }
 
     if (station) {
+      fetchAvailablePeriods()
       fetchData()
       const timer = setInterval(fetchData, POLL_INTERVAL_MS)
       window.addEventListener('focus', fetchData)
@@ -61,7 +76,7 @@ export default function ERStationPage() {
         window.removeEventListener('focus', fetchData)
       }
     }
-  }, [station, router])
+  }, [station, router, selectedPeriod])
 
   const fetchData = async () => {
     try {
@@ -103,6 +118,47 @@ export default function ERStationPage() {
 
   const closeModal = () => {
     setModal({ isOpen: false, day: null, itemId: null, type: null, currentValue: 0, itemName: '' })
+  }
+
+  const fetchAvailablePeriods = async () => {
+    try {
+      const data = await fetchJson(`/api/station-monthly-entry?station=${station}`)
+      setAvailablePeriods(data.periods || [])
+      setSelectedPeriod(data.currentMonth)
+    } catch (error) {
+      console.error('Failed to fetch periods:', error)
+    }
+  }
+
+  const handleNewEntry = async () => {
+    if (!window.confirm('Create new entry? This will archive the current month data and reset all AM/PM to 0. Quantity received and remaining will stay the same.')) {
+      return
+    }
+
+    try {
+      const result = await fetchJson('/api/station-monthly-entry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ station: normalizeStation(station) })
+      })
+
+      alert(result.message)
+      await fetchAvailablePeriods()
+      await fetchData()
+    } catch (error) {
+      console.error('Failed to create new entry:', error)
+      alert(error.message || 'Failed to create new entry')
+    }
+  }
+
+  const handlePrint = () => {
+    window.print()
+  }
+
+  const changePeriod = (monthYear) => {
+    setSelectedPeriod(monthYear)
+    const period = availablePeriods.find(p => p.month_year === monthYear)
+    setIsArchive(period?.isArchive || false)
   }
 
   const saveUsage = async () => {
@@ -209,15 +265,61 @@ export default function ERStationPage() {
       <main className="p-8 max-w-full">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">{stationLabel} Station Supply Tracking</h1>
-          <p className="text-foreground/60">Daily AM/PM usage monitoring for {currentMonthName} {currentYear}</p>
+          <p className="text-foreground/60">Daily AM/PM usage monitoring for {displayMonthName} {displayYear}</p>
           <p className="text-sm text-foreground/70">Auto refresh every 10s{lastUpdated ? ` · Updated ${lastUpdated}` : ''}</p>
         </div>
+
+        {/* Month Navigation */}
+        <Card className="mb-8">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-foreground">View Period:</span>
+                <select
+                  value={selectedPeriod || ''}
+                  onChange={(e) => changePeriod(e.target.value)}
+                  className="px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                >
+                  {availablePeriods.map((period) => (
+                    <option key={period.month_year} value={period.month_year}>
+                      {period.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handlePrint}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print
+                </Button>
+                
+                {!isArchive && (
+                  <Button
+                    onClick={handleNewEntry}
+                    variant="default"
+                    size="sm"
+                    className="gap-2 bg-accent hover:bg-accent/90"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    New Entry
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-accent" />
-              {`Daily Usage Tracking (${currentMonthName} 1-${daysInMonth})`}
+              {`Daily Usage Tracking (${displayMonthName} 1-${daysInMonth})`}
             </CardTitle>
             <CardDescription>Enter AM/PM usage quantities and save to update inventory</CardDescription>
           </CardHeader>
