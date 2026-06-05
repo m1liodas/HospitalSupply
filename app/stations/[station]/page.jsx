@@ -69,11 +69,9 @@ export default function ERStationPage() {
       fetchAvailablePeriods()
       setLoading(true)
       fetchData()
-      const timer = setInterval(fetchData, POLL_INTERVAL_MS)
       window.addEventListener('focus', fetchData)
 
       return () => {
-        clearInterval(timer)
         window.removeEventListener('focus', fetchData)
       }
     }
@@ -86,6 +84,14 @@ export default function ERStationPage() {
       fetchData()
     }
   }, [selectedPeriod, station])
+
+  // Handle polling based on archive state
+  useEffect(() => {
+    if (!station || isArchive) return
+    
+    const timer = setInterval(fetchData, POLL_INTERVAL_MS)
+    return () => clearInterval(timer)
+  }, [station, isArchive])
 
   const fetchData = async () => {
     try {
@@ -175,7 +181,211 @@ export default function ERStationPage() {
   }
 
   const handlePrint = () => {
-    window.print()
+    const now = new Date()
+    const reportDate = now.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit'
+    })
+
+    let printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Supply Usage Report - ${stationLabel} Station</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: white; padding: 20px; }
+          .container { max-width: 1200px; margin: 0 auto; }
+          
+          .header {
+            border-bottom: 3px solid #1f2937;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+          }
+          
+          .header h1 { font-size: 28px; color: #1f2937; margin-bottom: 8px; font-weight: 600; }
+          .header p { font-size: 14px; color: #6b7280; }
+          .report-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e5e7eb;
+          }
+          
+          .meta-item {
+            text-align: center;
+          }
+          
+          .meta-label { font-size: 12px; color: #9ca3af; text-transform: uppercase; font-weight: 600; }
+          .meta-value { font-size: 16px; color: #1f2937; font-weight: 600; margin-top: 4px; }
+          
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          }
+          
+          thead {
+            background-color: #1f2937;
+            color: white;
+          }
+          
+          th {
+            padding: 14px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #1f2937;
+          }
+          
+          th:first-child {
+            text-align: left;
+            width: 25%;
+          }
+          
+          td {
+            padding: 12px 10px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+            font-size: 13px;
+          }
+          
+          td:first-child {
+            text-align: left;
+            font-weight: 600;
+            color: #1f2937;
+            background-color: #f9fafb;
+            width: 25%;
+          }
+          
+          tbody tr:nth-child(odd) {
+            background-color: #f9fafb;
+          }
+          
+          tbody tr:hover {
+            background-color: #f3f4f6;
+          }
+          
+          .day-column { background-color: #eff6ff; }
+          .day-header { background-color: #0284c7 !important; }
+          
+          .am { color: #0284c7; font-weight: 600; }
+          .pm { color: #ea580c; font-weight: 600; }
+          
+          .summary {
+            background-color: #f3f4f6;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #374151;
+            border-left: 4px solid #1f2937;
+          }
+          
+          .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 11px;
+            color: #9ca3af;
+          }
+          
+          @media print {
+            body { padding: 0; }
+            .container { max-width: 100%; }
+            table { page-break-inside: avoid; }
+            tr { page-break-inside: avoid; }
+          }
+          
+          @page {
+            margin: 0.5in;
+            size: A4 landscape;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>${stationLabel} Station - Daily Usage Report</h1>
+            <p>Supply Management System - Official Record</p>
+            <div class="report-meta">
+              <div class="meta-item">
+                <div class="meta-label">Report Date</div>
+                <div class="meta-value">${reportDate}</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Period</div>
+                <div class="meta-value">${displayMonthName} ${displayYear}</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">Station</div>
+                <div class="meta-value">${stationLabel}</div>
+              </div>
+            </div>
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Item Name</th>
+                <th>Qty Received</th>
+                <th>Remaining</th>
+                ${days.map(day => `<th class="day-header">Day ${day + 1}<br><small style="font-size: 11px;">AM/PM</small></th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${releases.map(release => `
+                <tr>
+                  <td>${release.name}</td>
+                  <td>${release.quantity ?? release.quantity_released ?? 0}</td>
+                  <td style="color: #0284c7; font-weight: 600;">${release.quantity_remaining ?? 0}</td>
+                  ${days.map(day => {
+                    const usage = usages.find(u =>
+                      u.item_id === release.id &&
+                      new Date(u.usage_date).getDate() === day + 1
+                    );
+                    const amQty = usage?.am_quantity || 0;
+                    const pmQty = usage?.pm_quantity || 0;
+                    return `<td class="day-column"><span class="am">${amQty}</span> / <span class="pm">${pmQty}</span></td>`;
+                  }).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          
+          <div class="summary">
+            <strong>Report Summary:</strong><br>
+            Total Items: ${releases.length} | Total Remaining Units: ${releases.reduce((sum, r) => sum + (r.quantity_remaining ?? 0), 0)} | 
+            Report Generated: ${reportDate}
+          </div>
+          
+          <div class="footer">
+            <p>This is an official supply usage record for ${stationLabel} Station. Print date: ${new Date().toLocaleString()}</p>
+            <p>For questions or discrepancies, contact supply management.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '', 'height=600,width=1200');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
   }
 
   const changePeriod = (monthYear) => {
@@ -285,7 +495,12 @@ export default function ERStationPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">{stationLabel} Station Supply Tracking</h1>
           <p className="text-foreground/60">Daily AM/PM usage monitoring for {displayMonthName} {displayYear}</p>
-          <p className="text-sm text-foreground/70">Auto refresh every 10s{lastUpdated ? ` · Updated ${lastUpdated}` : ''}</p>
+          <p className="text-sm text-foreground/70">
+            {isArchive 
+              ? '📋 Viewing archive period - data is read-only'
+              : `⚡ Auto refresh every 10s${lastUpdated ? ` · Updated ${lastUpdated}` : ''}`
+            }
+          </p>
         </div>
 
         {/* Month Navigation */}
