@@ -80,12 +80,7 @@ export function Navigation() {
 
         <div className="flex items-center gap-2 mr-8">
 
-          <Image
-            src="/golden-logo.png"
-            alt="Central Supply Logo"
-            width={45}
-            height={45}
-          />
+          <Pill className="w-6 h-6 text-sidebar-primary" />
 
           <span className="font-bold text-lg text-sidebar-foreground">
             Central Supply
@@ -116,7 +111,7 @@ export function Navigation() {
                 )}
               >
 
-                <Icon className="w-4 h-4" />
+                <Icon />
 
                 {link.label}
 
