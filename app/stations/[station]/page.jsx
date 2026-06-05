@@ -67,6 +67,7 @@ export default function ERStationPage() {
 
     if (station) {
       fetchAvailablePeriods()
+      setLoading(true)
       fetchData()
       const timer = setInterval(fetchData, POLL_INTERVAL_MS)
       window.addEventListener('focus', fetchData)
@@ -76,7 +77,15 @@ export default function ERStationPage() {
         window.removeEventListener('focus', fetchData)
       }
     }
-  }, [station, router, selectedPeriod])
+  }, [station, router])
+
+  // Refetch data when selectedPeriod changes
+  useEffect(() => {
+    if (station && selectedPeriod) {
+      setLoading(true)
+      fetchData()
+    }
+  }, [selectedPeriod, station])
 
   const fetchData = async () => {
     try {
@@ -184,7 +193,6 @@ export default function ERStationPage() {
     const { day, itemId, type } = modal
 
     try {
-
       // FIND EXISTING RECORD
       const existingUsage = usages.find(
         u =>
@@ -192,10 +200,9 @@ export default function ERStationPage() {
           new Date(u.usage_date).getDate() === day + 1
       )
 
-      // CREATE DATE using current year/month
-      const now = new Date()
-      const year = now.getFullYear()
-      const month = String(now.getMonth() + 1).padStart(2, '0')
+      // CREATE DATE using selected period or current year/month
+      let year = displayYear
+      let month = String(displayDate.getMonth() + 1).padStart(2, '0')
       const usageDate = `${year}-${month}-${String(day + 1).padStart(2, '0')}`
 
       // KEEP OTHER VALUE
@@ -226,7 +233,6 @@ export default function ERStationPage() {
       const data = await res.json()
 
       if (res.ok) {
-
         // REFRESH DATA
         await fetchData()
 
@@ -234,16 +240,11 @@ export default function ERStationPage() {
         closeModal()
 
         alert(data.message)
-
       } else {
-
         alert(data.message)
       }
-
     } catch (error) {
-
       console.error(error)
-
       alert('Failed to save usage')
     }
   }
