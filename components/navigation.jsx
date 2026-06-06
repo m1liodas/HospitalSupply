@@ -80,7 +80,13 @@ export function Navigation() {
 
         <div className="flex items-center gap-2 mr-8">
 
-          <Pill className="w-6 h-6 text-sidebar-primary" />
+          <Image
+            src="/golden-logo.png"
+            alt="Golden Logo"
+            width={24}
+            height={24}
+            className="w-12 h-12"
+          />
 
           <span className="font-bold text-lg text-sidebar-foreground">
             Central Supply

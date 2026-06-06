@@ -11,22 +11,16 @@ import { useReactToPrint } from 'react-to-print'
 export default function HistoryPage() {
   const router = useRouter()
   const [auditHistory, setAuditHistory] = useState([])
-<<<<<<< HEAD
   const [historyRows, setHistoryRows] = useState([])
-=======
->>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   const [loading, setLoading] = useState(true)
   const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0])
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0])
   const [stationFilter, setStationFilter] = useState('')
   const printRef = useRef(null)
-<<<<<<< HEAD
   const [view, setView] = useState('release') // 'release' or 'resupply'
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(50)
   const [total, setTotal] = useState(0)
-=======
->>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('loggedIn')
@@ -48,7 +42,6 @@ export default function HistoryPage() {
     fetchAuditHistory()
   }, [startDate, endDate, stationFilter, router])
 
-<<<<<<< HEAD
   useEffect(() => {
     fetchHistory()
   }, [startDate, endDate, stationFilter, view, page, pageSize])
@@ -57,19 +50,12 @@ export default function HistoryPage() {
     try {
       setLoading(true)
       let url = `/api/audit-history?startDate=${startDate}&endDate=${endDate}&page=${page}&pageSize=${pageSize}`
-=======
-  const fetchAuditHistory = async () => {
-    try {
-      setLoading(true)
-      let url = `/api/audit-history?startDate=${startDate}&endDate=${endDate}`
->>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
       if (stationFilter) {
         url += `&stationName=${stationFilter}`
       }
 
       const res = await fetch(url)
       const data = await res.json()
-<<<<<<< HEAD
       // data: { rows, total }
       setAuditHistory(data.rows || [])
       setHistoryRows(data.rows || [])
@@ -106,12 +92,6 @@ export default function HistoryPage() {
       console.error('Failed to fetch history:', error)
       setHistoryRows([])
       setTotal(0)
-=======
-      setAuditHistory(data || [])
-    } catch (error) {
-      console.error('Failed to fetch audit history:', error)
-      setAuditHistory([])
->>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
     } finally {
       setLoading(false)
     }
@@ -210,7 +190,6 @@ export default function HistoryPage() {
                   <Printer className="w-4 h-4 mr-2" />
                   Print Report
                 </Button>
-<<<<<<< HEAD
                 <select
                   value={view}
                   onChange={(e) => { setView(e.target.value); setPage(1) }}
@@ -219,8 +198,6 @@ export default function HistoryPage() {
                   <option value="release">Release History</option>
                   <option value="resupply">Resupply History</option>
                 </select>
-=======
->>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
               </div>
             </div>
           </CardContent>
@@ -268,11 +245,7 @@ export default function HistoryPage() {
               </div>
             </CardHeader>
             <CardContent>
-<<<<<<< HEAD
               {historyRows.length === 0 ? (
-=======
-              {auditHistory.length === 0 ? (
->>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
                 <div className="py-12 text-center">
                   <p className="text-foreground/60 mb-2">No records found</p>
                   <p className="text-sm text-foreground/40">
@@ -287,7 +260,6 @@ export default function HistoryPage() {
                         <th className="text-left py-3 px-4 font-semibold text-foreground">Date & Time</th>
                         <th className="text-left py-3 px-4 font-semibold text-foreground">Item</th>
                         <th className="text-left py-3 px-4 font-semibold text-foreground">Brand</th>
-<<<<<<< HEAD
                         {view === 'release' ? (
                           <>
                             <th className="text-left py-3 px-4 font-semibold text-foreground">Station</th>
@@ -338,41 +310,10 @@ export default function HistoryPage() {
                               <td className="py-3 px-4 text-foreground/80">{record.notes || ''}</td>
                             </>
                           )}
-=======
-                        <th className="text-left py-3 px-4 font-semibold text-foreground">Station</th>
-                        <th className="text-center py-3 px-4 font-semibold text-foreground">Qty Released</th>
-                        <th className="text-center py-3 px-4 font-semibold text-foreground">Before</th>
-                        <th className="text-center py-3 px-4 font-semibold text-foreground">After</th>
-                        <th className="text-left py-3 px-4 font-semibold text-foreground">Released By</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {auditHistory.map((record, index) => (
-                        <tr key={index} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                          <td className="py-3 px-4 text-foreground/80">
-                            {new Date(record.released_at).toLocaleString()}
-                          </td>
-                          <td className="py-3 px-4 font-medium text-foreground">{record.item_name}</td>
-                          <td className="py-3 px-4 text-foreground/80">{record.item_brand || 'N/A'}</td>
-                          <td className="py-3 px-4 text-foreground/80">
-                            <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">
-                              {record.station_name}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-center">
-                            <span className="bg-accent/10 text-accent px-2 py-1 rounded font-semibold">
-                              {record.quantity_released}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-center text-foreground">{record.quantity_before}</td>
-                          <td className="py-3 px-4 text-center font-semibold text-secondary">{record.quantity_after}</td>
-                          <td className="py-3 px-4 text-foreground/80">{record.released_by}</td>
->>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
                         </tr>
                       ))}
                     </tbody>
                   </table>
-<<<<<<< HEAD
                   <div className="flex items-center justify-between mt-4">
                     <div className="text-sm text-foreground/60">Total: {total}</div>
                     <div className="flex gap-2">
@@ -393,8 +334,6 @@ export default function HistoryPage() {
                       </Button>
                     </div>
                   </div>
-=======
->>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
                 </div>
               )}
             </CardContent>
