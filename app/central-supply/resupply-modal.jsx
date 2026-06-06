@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import toast from 'react-hot-toast'
 
 export default function ResupplyModal({ item, onClose, onSubmit }) {
   const [quantity, setQuantity] = useState('')
@@ -33,15 +34,15 @@ export default function ResupplyModal({ item, onClose, onSubmit }) {
       const data = await res.json()
 
       if (res.ok) {
-        alert(`Successfully added ${quantity} units to ${item.name}`)
+        toast.success(`Successfully added ${quantity} units to ${item.name}`)
         onSubmit()
         onClose()
       } else {
-        alert(data.message || 'Failed to update quantity')
+        toast.error(data.message || 'Failed to update quantity')
       }
     } catch (error) {
       console.error('Failed to resupply item:', error)
-      alert('Error updating item')
+      toast.error('Error updating item')
     } finally {
       setLoading(false)
     }

@@ -8,6 +8,7 @@ import { AlertCircle, ChevronLeft, ChevronRight, Printer, RotateCcw } from 'luci
 import { Button } from '@/components/ui/button'
 import { fetchJson } from '@/lib/fetcher'
 import './station.css'
+import toast from 'react-hot-toast'
 
 const normalizeStation = (value) =>
   String(value || '')
@@ -23,7 +24,7 @@ export default function ERStationPage() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState({ isOpen: false, day: null, itemId: null, type: null, currentValue: 0, itemName: '' })
-  const [inputValue, setInputValue] = useState(0)
+  const [inputValue, setInputValue] = useState('')
   const [lastUpdated, setLastUpdated] = useState(null)
   const [availablePeriods, setAvailablePeriods] = useState([])
   const [selectedPeriod, setSelectedPeriod] = useState(null)
@@ -123,7 +124,7 @@ export default function ERStationPage() {
       setLastUpdated(new Date().toLocaleTimeString())
     } catch (error) {
       console.error('Failed to fetch data:', error)
-      alert(`Failed to load station data: ${error.message}`)
+      toast.error(`Failed to load station data`)
     } finally {
       setLoading(false)
     }
@@ -133,7 +134,7 @@ export default function ERStationPage() {
 
   const openModal = (day, itemId, type, currentValue, itemName) => {
     setModal({ isOpen: true, day, itemId, type, currentValue, itemName })
-    setInputValue(currentValue)
+    setInputValue(currentValue ?? '')
   }
 
   const closeModal = () => {
@@ -171,7 +172,7 @@ export default function ERStationPage() {
         body: JSON.stringify({ station: normalizeStation(station) })
       })
 
-      alert(result.message)
+      toast.success(result.message || 'Saved successfully!')
       await fetchAvailablePeriods()
       await fetchData()
     } catch (error) {
@@ -462,13 +463,15 @@ export default function ERStationPage() {
         // CLOSE MODAL
         closeModal()
 
-        alert(data.message)
+        toast.success('Saved successfully', {
+          icon: '✔',
+        })
       } else {
-        alert(data.message)
+        toast.error(data.message || 'Something went wrong')
       }
     } catch (error) {
       console.error(error)
-      alert('Failed to save usage')
+      toast.error('Failed to save usage')
     }
   }
 
@@ -622,14 +625,14 @@ export default function ERStationPage() {
                           <td key={`${day}-${release.id}`} className="border border-border p-1">
                             <div className="flex gap-0.5">
                               <button
-                                onClick={() => isArchiveReadOnly ? null : openModal(day, release.id, 'am', usage?.am_quantity || 0, release.name)}
+                                onClick={() => isArchiveReadOnly ? null : openModal(day, release.id, 'am', usage?.am_quantity ?? '', release.name)}
                                 className={`flex-1 px-1 py-1 rounded text-xs text-center font-medium transition-colors ${isArchiveReadOnly ? 'bg-slate-100 border border-slate-200 text-foreground/40 cursor-not-allowed' : 'bg-blue-50 border border-blue-200 hover:bg-blue-100 text-foreground/80 cursor-pointer'}`}
                               >
                                 {usage?.am_quantity || 0}
                               </button>
 
                               <button
-                                onClick={() => isArchiveReadOnly ? null : openModal(day, release.id, 'pm', usage?.pm_quantity || 0, release.name)}
+                                onClick={() => isArchiveReadOnly ? null : openModal(day, release.id, 'pm', usage?.pm_quantity ?? '', release.name)}
                                 className={`flex-1 px-1 py-1 rounded text-xs text-center font-medium transition-colors ${isArchiveReadOnly ? 'bg-slate-100 border border-slate-200 text-foreground/40 cursor-not-allowed' : 'bg-orange-50 border border-orange-200 hover:bg-orange-100 text-foreground/80 cursor-pointer'}`}
                               >
                                 {usage?.pm_quantity || 0}
@@ -710,7 +713,7 @@ export default function ERStationPage() {
                   type="number"
                   min="0"
                   value={inputValue}
-                  onChange={(e) => setInputValue(parseInt(e.target.value) || 0)}
+                  onChange={(e) => setInputValue(e.target.value)}
                   className="modal-input"
                   placeholder="0"
                   autoFocus

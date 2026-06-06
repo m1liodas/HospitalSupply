@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { X, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { fetchJson } from '@/lib/fetcher'
+import toast from 'react-hot-toast'
 
 export default function ReleaseSupplyModal({
   onClose,
@@ -35,7 +36,7 @@ export default function ReleaseSupplyModal({
 
       console.error('Failed to fetch stations:', error)
 
-      alert('Unable to load stations. Please refresh the page.')
+      toast.error('Unable to load stations. Please refresh the page.')
 
     } finally {
 
@@ -63,25 +64,23 @@ export default function ReleaseSupplyModal({
   }
 
   const updateItem = (index, field, value) => {
-
     const updated = [...releaseItems]
 
     if (field === 'item_id') {
-
-      const selectedItem = items.find(
-        i => i.id === Number(value)
-      )
+      const itemId = value === '' ? '' : Number(value)
+      const selectedItem = items.find((i) => i.id === Number(itemId))
 
       updated[index] = {
         ...updated[index],
-        item_id: value,
-        quantity: 1,
+        item_id: itemId,
+        quantity: selectedItem ? 1 : 0,
         quantity_remaining: selectedItem?.quantity || 0,
       }
-
     } else {
-
-      updated[index][field] = parseInt(value) || 0
+      updated[index] = {
+        ...updated[index],
+        [field]: parseInt(value, 10) || 0,
+      }
     }
 
     setReleaseItems(updated)
@@ -112,36 +111,48 @@ export default function ReleaseSupplyModal({
     e.preventDefault()
 
     if (!selectedStation) {
-      alert('Please select a station')
+      toast.error('Please select a station')
       return
     }
 
     if (releaseItems.length === 0) {
-      alert('Please add at least one item')
+      toast.error('Please add at least one item')
       return
     }
 
     for (const item of releaseItems) {
 
       if (!item.item_id) {
-        alert('Please select an item')
+        toast.error('Please select an item')
         return
       }
 
       if (item.quantity <= 0) {
-        alert('Quantity must be greater than 0')
+        toast.error('Quantity must be greater than 0')
         return
       }
 
       if (item.quantity > item.quantity_remaining) {
-        alert('Quantity exceeds available stock')
+        toast.error('Quantity exceeds available stock')
         return
       }
     }
 
     try {
-      const stationObj = stations.find(s => s.id === Number(selectedStation))
-      const stationSlug = stationObj ? String(stationObj.name).toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-') : null
+      const stationObj = stations.find((s) => s.id === Number(selectedStation))
+      const stationSlug = stationObj
+        ? String(stationObj.name).toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-')
+        : null
+
+      if (!stationSlug) {
+        toast.error('Please select a valid station')
+        return
+      }
+
+      const payload = releaseItems.map((item) => ({
+        item_id: Number(item.item_id),
+        quantity: Number(item.quantity),
+      }))
 
       const data = await fetchJson('/api/releases', {
         method: 'POST',
@@ -150,11 +161,11 @@ export default function ReleaseSupplyModal({
         },
         body: JSON.stringify({
           station: stationSlug,
-          items: releaseItems,
+          items: payload,
         }),
       })
 
-      alert(data.message || 'Supplies released successfully')
+      toast.success(data.message || 'Supplies released successfully')
 
       setReleaseItems([])
       setSelectedStation('')
@@ -169,7 +180,7 @@ export default function ReleaseSupplyModal({
 
       console.log('RELEASE ERROR:', error)
 
-      alert(error.message || 'Failed to release supplies')
+      toast.error(error.message || 'Failed to release supplies')
     }
   }
 
