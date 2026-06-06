@@ -102,19 +102,19 @@ export default function CentralSupplyPage() {
   const handleEditItem = async (formData) => {
     if (!selectedItem) return
 
-    try {
-      await fetchJson(`/api/items/${selectedItem.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-      await fetchData()
-      setShowEditModal(false)
-      setSelectedItem(null)
-    } catch (error) {
-      console.error('Edit item error:', error)
-      setError('Unable to update item. Please try again.')
+    const res = await fetch(`/api/items/${selectedItem.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    })
+
+    if (!res.ok) {
+      throw new Error('Update failed')
     }
+
+    fetchData()
+    setShowEditModal(false)
+    setSelectedItem(null)
   }
 
   // reset page when filters change
@@ -168,36 +168,38 @@ export default function CentralSupplyPage() {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <main className="p-8 max-w-450 mx-auto">
+      <main className="px-4 py-6 sm:p-8 max-w-full sm:max-w-7xl mx-auto">
 
         {/* HEADER */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Central Supply Management
-            </h1>
-            <p className="text-foreground/60 text-sm">
-              Manage inventory items and distribution
-            </p>
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">
+                Central Supply Management
+              </h1>
+              <p className="text-foreground/60 text-sm">
+                Manage inventory items and distribution
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Button onClick={() => setShowAddModal(true)} className="w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Item
+              </Button>
+
+              <Button variant="outline" onClick={() => setShowReleaseModal(true)} className="w-full sm:w-auto">
+                <Send className="w-4 h-4 mr-2" />
+                Release Supplies
+              </Button>
+            </div>
           </div>
 
           {error && (
-            <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
+            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
-
-          <div className="flex gap-3">
-            <Button onClick={() => setShowAddModal(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Item
-            </Button>
-
-            <Button variant="outline" onClick={() => setShowReleaseModal(true)}>
-              <Send className="w-4 h-4 mr-2" />
-              Release Supplies
-            </Button>
-          </div>
         </div>
 
         {/* TABLE CARD */}
@@ -211,10 +213,10 @@ export default function CentralSupplyPage() {
                 </CardDescription>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <button
                   onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                  className="px-3 py-2 border rounded-lg text-xs"
+                  className="px-3 py-2 border rounded-lg text-xs w-full sm:w-auto"
                 >
                   Sort A-Z {sortOrder === 'asc' ? '↑' : '↓'}
                 </button>
@@ -223,7 +225,7 @@ export default function CentralSupplyPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search..."
-                  className="px-3 py-2 border rounded-lg text-xs"
+                  className="px-3 py-2 border rounded-lg text-xs w-full sm:w-auto"
                 />
               </div>
             </div>
@@ -232,7 +234,7 @@ export default function CentralSupplyPage() {
           <CardContent>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-xs">
+              <table className="min-w-[720px] w-full text-xs sm:text-xs">
                 <thead>
                   <tr className="border-b">
                     <th className="p-3 text-left">Item</th>

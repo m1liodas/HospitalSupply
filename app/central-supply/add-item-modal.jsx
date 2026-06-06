@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import toast from 'react-hot-toast'
 
 export default function AddItemModal({ onClose, onSubmit }) {
   const [formData, setFormData] = useState({
@@ -20,7 +21,48 @@ export default function AddItemModal({ onClose, onSubmit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onSubmit(formData)
+
+    // ---------------- VALIDATION ----------------
+    if (!formData.name.trim()) {
+      toast.error('Item name is required')
+      return
+    }
+
+    if (!formData.brand.trim()) {
+      toast.error('Brand is required')
+      return
+    }
+
+    if (!formData.quantity || Number(formData.quantity) <= 0) {
+      toast.error('Quantity must be greater than 0')
+      return
+    }
+
+    if (!formData.selling_price || Number(formData.selling_price) <= 0) {
+      toast.error('Selling price must be greater than 0')
+      return
+    }
+
+    if (!formData.expiration_date) {
+      toast.error('Expiration date is required')
+      return
+    }
+
+    const selectedDate = new Date(formData.expiration_date)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    if (selectedDate < today) {
+      toast.error('Expiration date cannot be in the past')
+      return
+    }
+
+    // convert numeric fields properly
+    onSubmit({
+      ...formData,
+      quantity: Number(formData.quantity),
+      selling_price: Number(formData.selling_price),
+    })
   }
 
   return (
@@ -41,7 +83,6 @@ export default function AddItemModal({ onClose, onSubmit }) {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              required
               className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="e.g., Surgical Gloves"
             />
@@ -54,7 +95,6 @@ export default function AddItemModal({ onClose, onSubmit }) {
               name="brand"
               value={formData.brand}
               onChange={handleChange}
-              required
               className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="e.g., Medline"
             />
@@ -67,7 +107,6 @@ export default function AddItemModal({ onClose, onSubmit }) {
               name="quantity"
               value={formData.quantity}
               onChange={handleChange}
-              required
               min="0"
               className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="e.g., 1000"
@@ -81,7 +120,6 @@ export default function AddItemModal({ onClose, onSubmit }) {
               name="selling_price"
               value={formData.selling_price}
               onChange={handleChange}
-              required
               step="0.01"
               className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
@@ -94,24 +132,16 @@ export default function AddItemModal({ onClose, onSubmit }) {
               name="expiration_date"
               value={formData.expiration_date}
               onChange={handleChange}
-              required
               className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button
-              type="submit"
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
+            <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
               Add Item
             </Button>
-            <Button
-              type="button"
-              onClick={onClose}
-              variant="outline"
-              className="flex-1"
-            >
+
+            <Button type="button" onClick={onClose} variant="outline" className="flex-1">
               Cancel
             </Button>
           </div>

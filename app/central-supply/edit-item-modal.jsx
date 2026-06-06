@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import toast from 'react-hot-toast'
 
 export default function EditItemModal({ item, onClose, onSubmit }) {
+  const [loading, setLoading] = useState(false)
+
   const [formData, setFormData] = useState({
     name: item.name,
     brand: item.brand,
@@ -18,14 +21,61 @@ export default function EditItemModal({ item, onClose, onSubmit }) {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    onSubmit(formData)
+
+    // ---------------- VALIDATION ----------------
+    if (!formData.name?.trim()) {
+      toast.error('Item name is required')
+      return
+    }
+
+    if (formData.quantity === '' || Number(formData.quantity) < 0) {
+      toast.error('Quantity must be 0 or greater')
+      return
+    }
+
+    if (!formData.selling_price || Number(formData.selling_price) <= 0) {
+      toast.error('Selling price must be greater than 0')
+      return
+    }
+
+    // OPTIONAL expiration validation
+    if (formData.expiration_date) {
+      const selectedDate = new Date(formData.expiration_date)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
+      if (!isNaN(selectedDate.getTime()) && selectedDate < today) {
+        toast.error('Expiration date cannot be in the past')
+        return
+      }
+    }
+
+    setLoading(true)
+
+    try {
+      await onSubmit({
+        ...formData,
+        quantity: Number(formData.quantity),
+        selling_price: Number(formData.selling_price),
+        expiration_date: formData.expiration_date || null,
+      })
+
+      toast.success('Item updated successfully')
+      onClose()
+    } catch (error) {
+      toast.error('Failed to update item')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-card rounded-lg shadow-lg max-w-md w-full p-6">
+
+        {/* HEADER */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-foreground">Edit Item</h2>
           <button onClick={onClose} className="text-foreground/60 hover:text-foreground">
@@ -33,77 +83,69 @@ export default function EditItemModal({ item, onClose, onSubmit }) {
           </button>
         </div>
 
+        {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Item Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              //required
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Brand</label>
-            <input
-              type="text"
-              name="brand"
-              value={formData.brand}
-              onChange={handleChange}
-              //required
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+            placeholder="Item Name"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Quantity</label>
-            <input
-              type="text"
-              name="quantity"
-              value={formData.quantity}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+          <input
+            type="text"
+            name="brand"
+            value={formData.brand}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+            placeholder="Brand"
+          />
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Selling Price (₱)</label>
-              <input
-                type="number"
-                name="selling_price"
-                value={formData.selling_price}
-                onChange={handleChange}
-                required
-                step="0.01"
-                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-          </div>
+          <input
+            type="number"
+            name="quantity"
+            value={formData.quantity}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+            placeholder="Quantity"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Expiration Date</label>
-            <input
-              type="date"
-              name="expiration_date"
-              value={formData.expiration_date ?
-               new Date(formData.expiration_date).toISOString().split('T')[0] : ''}
-              onChange={handleChange}
-              //required
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+          <input
+            type="number"
+            name="selling_price"
+            value={formData.selling_price}
+            onChange={handleChange}
+            step="0.01"
+            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+            placeholder="Selling Price"
+          />
 
+          <input
+            type="date"
+            name="expiration_date"
+            value={
+              formData.expiration_date
+                ? new Date(formData.expiration_date).toISOString().split('T')[0]
+                : ''
+            }
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+          />
+
+          {/* ACTIONS */}
           <div className="flex gap-3 pt-4">
+
             <Button
               type="submit"
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+              disabled={loading}
+              className="flex-1 bg-primary hover:bg-primary/90"
             >
-              Update Item
+              {loading ? 'Updating...' : 'Update Item'}
             </Button>
+
             <Button
               type="button"
               onClick={onClose}
@@ -112,7 +154,9 @@ export default function EditItemModal({ item, onClose, onSubmit }) {
             >
               Cancel
             </Button>
+
           </div>
+
         </form>
       </div>
     </div>

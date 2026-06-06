@@ -50,7 +50,7 @@ export default function ResupplyModal({ item, onClose, onSubmit }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-card rounded-lg shadow-lg max-w-md w-full p-6">
+      <div className="bg-card rounded-lg shadow-lg w-full max-w-screen-sm p-4 sm:p-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-foreground">
             Re-supply: {item.name}
@@ -103,7 +103,7 @@ export default function ResupplyModal({ item, onClose, onSubmit }) {
             />
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-border">
+          <div className="flex flex-col gap-3 pt-4 border-t border-border sm:flex-row">
             <Button
               type="submit"
               disabled={loading}

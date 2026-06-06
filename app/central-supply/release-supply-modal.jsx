@@ -187,9 +187,9 @@ export default function ReleaseSupplyModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
 
-      <div className="bg-card rounded-lg shadow-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-lg shadow-lg w-full max-w-screen-sm sm:max-w-2xl p-4 sm:p-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
 
-        <div className="flex items-center justify-between mb-6 sticky top-0 bg-card">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sticky top-0 bg-card">
           <h2 className="text-xl font-bold text-foreground">
             Release Supplies to Station
           </h2>
@@ -259,7 +259,7 @@ export default function ReleaseSupplyModal({
                   className="p-3 bg-muted/50 rounded-lg border border-border"
                 >
 
-                  <div className="grid grid-cols-2 gap-3 mb-2">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 mb-2">
 
                     <div>
 
@@ -332,7 +332,7 @@ export default function ReleaseSupplyModal({
 
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
                     <div className="text-xs font-medium">
                       Available Stock:
@@ -379,7 +379,7 @@ export default function ReleaseSupplyModal({
                 !selectedStation ||
                 releaseItems.length === 0
               }
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
+              className="w-full sm:flex-1 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
             >
               Release Supplies
             </Button>
@@ -388,7 +388,7 @@ export default function ReleaseSupplyModal({
               type="button"
               onClick={onClose}
               variant="outline"
-              className="flex-1"
+              className="w-full sm:flex-1"
             >
               Cancel
             </Button>
