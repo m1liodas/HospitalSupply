@@ -119,9 +119,12 @@ importers:
       lucide-react:
         specifier: ^0.564.0
         version: 0.564.0(react@19.2.4)
+<<<<<<< HEAD
       mysql2:
         specifier: ^3.22.4
         version: 3.22.4(@types/node@22.19.11)
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
       next:
         specifier: 16.2.6
         version: 16.2.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1273,10 +1276,13 @@ packages:
     peerDependencies:
       postcss: ^8.1.0
 
+<<<<<<< HEAD
   aws-ssl-profiles@1.1.2:
     resolution: {integrity: sha512-NZKeq9AfyQvEeNlN0zSYAaWrmBffJh3IELMZfRpJVWgrpEbtEpnjvzqBPf+mxoI287JohRDoa+/nsfqqiZmF6g==}
     engines: {node: '>= 6.0.0'}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   baseline-browser-mapping@2.9.19:
     resolution: {integrity: sha512-ipDqC8FrAl/76p2SSWKSI+H9tFwm7vYqXQrItCuiVPt26Km0jS+NzSsBWAaBusvSbQcfJG+JitdMm+wZAgTYqg==}
     hasBin: true
@@ -1361,10 +1367,13 @@ packages:
   decimal.js-light@2.5.1:
     resolution: {integrity: sha512-qIMFpTMZmny+MMIitAB6D7iVPEorVw6YQRWkvarTkT4tBeSLLiHzcwj6q0MmYSFCiVpiqPJTJEYIrpcPzVEIvg==}
 
+<<<<<<< HEAD
   denque@2.1.0:
     resolution: {integrity: sha512-HVQE3AAb/pxF8fQAoiqpvg9i3evqug3hoiwakOyZAwJm+6vZehbkYXZ0l4JxS+I3QxM97v5aaRNhj8v5oBhekw==}
     engines: {node: '>=0.10'}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   detect-libc@2.1.2:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
@@ -1409,9 +1418,12 @@ packages:
   fraction.js@5.3.4:
     resolution: {integrity: sha512-1X1NTtiJphryn/uLQz3whtY6jK3fTqoE3ohKs0tT+Ujr1W59oopxmoEh7Lu5p6vBaPbgoM0bzveAW4Qi5RyWDQ==}
 
+<<<<<<< HEAD
   generate-function@2.3.1:
     resolution: {integrity: sha512-eeB5GfMNeevm/GRYq20ShmsaGcmI81kIX2K9XQx5miC8KdHaC6Jm0qQ8ZNeGOi7wYB8OsdxKs+Y2oVuTFuVwKQ==}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   get-nonce@1.0.1:
     resolution: {integrity: sha512-FJhYRoDaiatfEkUK8HKlicmu/3SGFD51q3itKDGoSTysQJBnfOcxU5GxnhE1E6soB76MbT0MBtnKJuXyAx+96Q==}
     engines: {node: '>=6'}
@@ -1419,10 +1431,13 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
+<<<<<<< HEAD
   iconv-lite@0.7.2:
     resolution: {integrity: sha512-im9DjEDQ55s9fL4EYzOAv0yMqmMBSZp6G0VvFyTMPKWxiSBHUj9NW/qqLmXUwXrrM7AvqSlTCfvqRb0cM8yYqw==}
     engines: {node: '>=0.10.0'}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   input-otp@1.4.2:
     resolution: {integrity: sha512-l3jWwYNvrEa6NTCt7BECfCm48GvwuZzkoeG3gBL2w4CHeOXW3eKFmf9UNYkNfYc3mxMrthMnxjIE07MT0zLBQA==}
     peerDependencies:
@@ -1433,9 +1448,12 @@ packages:
     resolution: {integrity: sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg==}
     engines: {node: '>=12'}
 
+<<<<<<< HEAD
   is-property@1.0.2:
     resolution: {integrity: sha512-Ks/IoX00TtClbGQr4TWXemAnktAQvYB7HzcCxDGqEZU6oCmb2INHuOoKxbtR+HFkmYWBKv/dOZtGRiAjDhj92g==}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   jiti@2.6.1:
     resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
     hasBin: true
@@ -1520,17 +1538,23 @@ packages:
   lodash@4.17.23:
     resolution: {integrity: sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==}
 
+<<<<<<< HEAD
   long@5.3.2:
     resolution: {integrity: sha512-mNAgZ1GmyNhD7AuqnTG3/VQ26o760+ZYBPKjPvugO8+nLbYfX6TVpJPseBvopbdY+qpZ/lKUnmEc1LeZYS3QAA==}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   loose-envify@1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
 
+<<<<<<< HEAD
   lru.min@1.1.4:
     resolution: {integrity: sha512-DqC6n3QQ77zdFpCMASA1a3Jlb64Hv2N2DciFGkO/4L9+q/IpIAuRlKOvCXabtRW6cQf8usbmM6BE/TOPysCdIA==}
     engines: {bun: '>=1.0.0', deno: '>=1.30.0', node: '>=8.0.0'}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   lucide-react@0.564.0:
     resolution: {integrity: sha512-JJ8GVTQqFwuliifD48U6+h7DXEHdkhJ/E87kksGByII3qHxtPciVb8T8woQONHBQgHVOl7rSMrrip3SeVNy7Fg==}
     peerDependencies:
@@ -1539,6 +1563,7 @@ packages:
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
+<<<<<<< HEAD
   mysql2@3.22.4:
     resolution: {integrity: sha512-CtXYlmL7ZamiYKbmqkamQHWJROUHSfm+f3kByzGfknw7kW51mcB2ouMUqYq1XfYxbXmnWo6RhPydx6OCqdgcmQ==}
     engines: {node: '>= 8.0'}
@@ -1549,6 +1574,8 @@ packages:
     resolution: {integrity: sha512-Tz09sEL2EEuv5fFowm419c1+a/jSMiBjI9gHxVLrVdbUkkNUUfjsVYs9pVZu5oCon/kmRh9TfLEObFtkVxmY0w==}
     engines: {node: '>=8.0.0'}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   nanoid@3.3.11:
     resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -1695,9 +1722,12 @@ packages:
       react: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
+<<<<<<< HEAD
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   scheduler@0.27.0:
     resolution: {integrity: sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==}
 
@@ -1720,10 +1750,13 @@ packages:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
 
+<<<<<<< HEAD
   sql-escaper@1.3.3:
     resolution: {integrity: sha512-BsTCV265VpTp8tm1wyIm1xqQCS+Q9NHx2Sr+WcnUrgLrQ6yiDIvHYJV5gHxsj1lMBy2zm5twLaZao8Jd+S8JJw==}
     engines: {bun: '>=1.0.0', deno: '>=2.0.0', node: '>=12.0.0'}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   styled-jsx@5.1.6:
     resolution: {integrity: sha512-qSVyDTeMotdvQYoHWLNGwRFJHC+i+ZvdBRYosOFgC+Wg1vx4frN2/RG/NA7SYqqvKNLf39P2LSRA2pu6n0XYZA==}
     engines: {node: '>= 12.0.0'}
@@ -2805,8 +2838,11 @@ snapshots:
       postcss: 8.5.6
       postcss-value-parser: 4.2.0
 
+<<<<<<< HEAD
   aws-ssl-profiles@1.1.2: {}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   baseline-browser-mapping@2.9.19: {}
 
   browserslist@4.28.1:
@@ -2885,8 +2921,11 @@ snapshots:
 
   decimal.js-light@2.5.1: {}
 
+<<<<<<< HEAD
   denque@2.1.0: {}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   detect-libc@2.1.2: {}
 
   detect-node-es@1.1.0: {}
@@ -2923,18 +2962,24 @@ snapshots:
 
   fraction.js@5.3.4: {}
 
+<<<<<<< HEAD
   generate-function@2.3.1:
     dependencies:
       is-property: 1.0.2
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   get-nonce@1.0.1: {}
 
   graceful-fs@4.2.11: {}
 
+<<<<<<< HEAD
   iconv-lite@0.7.2:
     dependencies:
       safer-buffer: 2.1.2
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   input-otp@1.4.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
       react: 19.2.4
@@ -2942,8 +2987,11 @@ snapshots:
 
   internmap@2.0.3: {}
 
+<<<<<<< HEAD
   is-property@1.0.2: {}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   jiti@2.6.1: {}
 
   js-tokens@4.0.0: {}
@@ -2999,14 +3047,20 @@ snapshots:
 
   lodash@4.17.23: {}
 
+<<<<<<< HEAD
   long@5.3.2: {}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   loose-envify@1.4.0:
     dependencies:
       js-tokens: 4.0.0
 
+<<<<<<< HEAD
   lru.min@1.1.4: {}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   lucide-react@0.564.0(react@19.2.4):
     dependencies:
       react: 19.2.4
@@ -3015,6 +3069,7 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
+<<<<<<< HEAD
   mysql2@3.22.4(@types/node@22.19.11):
     dependencies:
       '@types/node': 22.19.11
@@ -3031,6 +3086,8 @@ snapshots:
     dependencies:
       lru.min: 1.1.4
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   nanoid@3.3.11: {}
 
   next-themes@0.4.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
@@ -3180,8 +3237,11 @@ snapshots:
       tiny-invariant: 1.3.3
       victory-vendor: 36.9.2
 
+<<<<<<< HEAD
   safer-buffer@2.1.2: {}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   scheduler@0.27.0: {}
 
   semver@7.7.4:
@@ -3226,8 +3286,11 @@ snapshots:
 
   source-map-js@1.2.1: {}
 
+<<<<<<< HEAD
   sql-escaper@1.3.3: {}
 
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   styled-jsx@5.1.6(react@19.2.4):
     dependencies:
       client-only: 0.0.1

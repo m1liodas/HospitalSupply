@@ -67,6 +67,7 @@ export default function ERStationPage() {
 
     if (station) {
       fetchAvailablePeriods()
+<<<<<<< HEAD
       setLoading(true)
       fetchData()
       window.addEventListener('focus', fetchData)
@@ -92,6 +93,18 @@ export default function ERStationPage() {
     const timer = setInterval(fetchData, POLL_INTERVAL_MS)
     return () => clearInterval(timer)
   }, [station, isArchive])
+=======
+      fetchData()
+      const timer = setInterval(fetchData, POLL_INTERVAL_MS)
+      window.addEventListener('focus', fetchData)
+
+      return () => {
+        clearInterval(timer)
+        window.removeEventListener('focus', fetchData)
+      }
+    }
+  }, [station, router, selectedPeriod])
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
 
   const fetchData = async () => {
     try {
@@ -181,6 +194,7 @@ export default function ERStationPage() {
   }
 
   const handlePrint = () => {
+<<<<<<< HEAD
     const now = new Date()
     const reportDate = now.toLocaleDateString('en-US', { 
       year: 'numeric', 
@@ -399,6 +413,9 @@ export default function ERStationPage() {
     setTimeout(() => {
       printWindow.print();
     }, 500);
+=======
+    window.print()
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
   }
 
   const changePeriod = (monthYear) => {
@@ -416,6 +433,10 @@ export default function ERStationPage() {
     const { day, itemId, type } = modal
 
     try {
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
       // FIND EXISTING RECORD
       const existingUsage = usages.find(
         u =>
@@ -423,9 +444,16 @@ export default function ERStationPage() {
           new Date(u.usage_date).getDate() === day + 1
       )
 
+<<<<<<< HEAD
       // CREATE DATE using selected period or current year/month
       let year = displayYear
       let month = String(displayDate.getMonth() + 1).padStart(2, '0')
+=======
+      // CREATE DATE using current year/month
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
       const usageDate = `${year}-${month}-${String(day + 1).padStart(2, '0')}`
 
       // KEEP OTHER VALUE
@@ -456,6 +484,10 @@ export default function ERStationPage() {
       const data = await res.json()
 
       if (res.ok) {
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
         // REFRESH DATA
         await fetchData()
 
@@ -463,11 +495,24 @@ export default function ERStationPage() {
         closeModal()
 
         alert(data.message)
+<<<<<<< HEAD
       } else {
         alert(data.message)
       }
     } catch (error) {
       console.error(error)
+=======
+
+      } else {
+
+        alert(data.message)
+      }
+
+    } catch (error) {
+
+      console.error(error)
+
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
       alert('Failed to save usage')
     }
   }
@@ -508,12 +553,16 @@ export default function ERStationPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">{stationLabel} Station Supply Tracking</h1>
           <p className="text-foreground/60">Daily AM/PM usage monitoring for {displayMonthName} {displayYear}</p>
+<<<<<<< HEAD
           <p className="text-sm text-foreground/70">
             {isArchive 
               ? '📋 Viewing archive period - data is read-only'
               : `⚡ Auto refresh every 10s${lastUpdated ? ` · Updated ${lastUpdated}` : ''}`
             }
           </p>
+=======
+          <p className="text-sm text-foreground/70">Auto refresh every 10s{lastUpdated ? ` · Updated ${lastUpdated}` : ''}</p>
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
         </div>
 
         {/* Month Navigation */}
@@ -579,7 +628,11 @@ export default function ERStationPage() {
                       Item Name
                     </th>
                     <th className="border border-border px-2 py-2 text-center font-semibold text-foreground w-16">
+<<<<<<< HEAD
                       Total Qty
+=======
+                      Qty Received
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
                     </th>
                     <th className="border border-border px-2 py-2 text-center font-semibold text-foreground w-16">
                       Remaining
@@ -602,6 +655,7 @@ export default function ERStationPage() {
                         {release.quantity ?? release.quantity_released ?? 0}
                       </td>
                       <td className="border border-border px-2 py-2 text-center font-semibold text-primary">
+<<<<<<< HEAD
                         {isArchive 
                           ? (() => {
                               const itemUsages = usages.filter(u => u.item_id === release.id)
@@ -611,6 +665,9 @@ export default function ERStationPage() {
                             })()
                           : (release.quantity_remaining ?? 0)
                         }
+=======
+                        {release.quantity_remaining ?? 0}
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
                       </td>
                       {days.map((day) => {
                         const usage = usages.find(
@@ -666,6 +723,7 @@ export default function ERStationPage() {
                   <h3 className="font-semibold text-foreground mb-2">{release.name}</h3>
                   <div className="space-y-1 text-sm text-foreground/70">
                     <div>Brand: <span className="text-foreground">{release.brand}</span></div>
+<<<<<<< HEAD
                     <div>Total Qty: <span className="font-medium text-foreground">{release.quantity ?? release.quantity_released ?? 0} units</span></div>
                     <div>Remaining: <span className="font-medium text-primary">
                     {isArchive 
@@ -678,6 +736,10 @@ export default function ERStationPage() {
                       : (release.quantity_remaining ?? 0)
                     }
                   </span> units</div>
+=======
+                    <div>Qty Received: <span className="font-medium text-foreground">{release.quantity ?? release.quantity_released ?? 0} units</span></div>
+                    <div>Remaining: <span className="font-medium text-primary">{release.quantity_remaining ?? 0} units</span></div>
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
                     <div>Date Received: <span className="text-foreground/60">{release.date_receive ? new Date(release.date_receive).toLocaleDateString() : release.released_at ? new Date(release.released_at).toLocaleDateString() : ''}</span></div>
                   </div>
                 </div>

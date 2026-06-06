@@ -145,8 +145,11 @@ export async function POST(request: NextRequest) {
 
     const currentRemaining =
       stationRows[0].quantity_remaining || 0
+<<<<<<< HEAD
     const quantityReceived =
       stationRows[0].quantity || 0
+=======
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
 
     // RESTORE OLD VALUES
     const restoredStock =
@@ -246,6 +249,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
+<<<<<<< HEAD
     // Also save to usage_logs_archive if it exists and we're saving a quantity
     try {
       const [archiveExists]: any = await db.execute(
@@ -282,6 +286,9 @@ export async function POST(request: NextRequest) {
       // Silently continue if archive table doesn't have the columns yet
       console.log('[Services] Archive table update skipped (table may not have updated schema)')
     }
+=======
+    // no-op, using shared pool
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
 
     return NextResponse.json({
       message: 'Usage saved successfully',
@@ -297,4 +304,8 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 1d528fd1f74156d04c09d5007bcfb21e229acaeb
