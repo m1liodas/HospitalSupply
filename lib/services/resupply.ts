@@ -58,3 +58,51 @@ export async function recordResupply(
     throw new Error('Failed to record resupply')
   }
 }
+
+/**
+ * Clear all resupply history
+ */
+export async function clearAllResupplyHistory(): Promise<number> {
+  try {
+    const [result]: any = await db.execute('DELETE FROM resupply_history')
+    return result.affectedRows || 0
+  } catch (error) {
+    console.error('[Services] Clear all resupply history error:', error)
+    throw new Error('Failed to clear all resupply history')
+  }
+}
+
+/**
+ * Clear resupply history by date range
+ */
+export async function clearResupplyHistoryByDateRange(
+  startDate: string,
+  endDate: string
+): Promise<number> {
+  try {
+    const [result]: any = await db.execute(
+      'DELETE FROM resupply_history WHERE added_at >= ? AND added_at <= ?',
+      [startDate, endDate]
+    )
+    return result.affectedRows || 0
+  } catch (error) {
+    console.error('[Services] Clear resupply history by date range error:', error)
+    throw new Error('Failed to clear resupply history by date range')
+  }
+}
+
+/**
+ * Clear resupply history from past months
+ */
+export async function clearResupplyHistoryPastMonths(months: number): Promise<number> {
+  try {
+    const [result]: any = await db.execute(
+      `DELETE FROM resupply_history WHERE added_at < DATE_SUB(NOW(), INTERVAL ? MONTH)`,
+      [months]
+    )
+    return result.affectedRows || 0
+  } catch (error) {
+    console.error('[Services] Clear resupply history past months error:', error)
+    throw new Error('Failed to clear resupply history for past months')
+  }
+}

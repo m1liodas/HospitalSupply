@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Printer, Download, FileText } from 'lucide-react'
+import { Printer, Download, FileText, Trash2 } from 'lucide-react'
 import { useReactToPrint } from 'react-to-print'
+import ClearHistoryModal from './clear-history-modal'
 
 export default function HistoryPage() {
   const router = useRouter()
@@ -21,6 +22,10 @@ export default function HistoryPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(50)
   const [total, setTotal] = useState(0)
+  const [showClearModal, setShowClearModal] = useState(false)
+  const [isClearLoading, setIsClearLoading] = useState(false)
+  const [clearSuccess, setClearSuccess] = useState('')
+  const [clearError, setClearError] = useState('')
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('loggedIn')
@@ -102,6 +107,50 @@ export default function HistoryPage() {
     documentTitle: `Audit Report ${startDate} to ${endDate}`,
   })
 
+  const handleClearHistory = async (clearType, historyType, startDate, endDate, months) => {
+    try {
+      setIsClearLoading(true)
+      setClearError('')
+      setClearSuccess('')
+
+      const response = await fetch('/api/history/clear', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clearType,
+          historyType,
+          startDate,
+          endDate,
+          months,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.message || 'Failed to clear history')
+      }
+
+      const data = await response.json()
+      setClearSuccess(`Successfully deleted ${data.deletedCount} record${data.deletedCount !== 1 ? 's' : ''}`)
+
+      // Refresh the current view
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      setPage(1)
+      fetchHistory()
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setClearSuccess(''), 3000)
+    } catch (error) {
+      console.error('Error clearing history:', error)
+      setClearError(error.message || 'Failed to clear history')
+      setTimeout(() => setClearError(''), 4000)
+    } finally {
+      setIsClearLoading(false)
+    }
+  }
+
   const getStations = () => {
     const stations = new Set(auditHistory.map(h => h.station_name))
     return Array.from(stations).sort()
@@ -141,20 +190,45 @@ export default function HistoryPage() {
           <p className="text-foreground/60">Track all supply releases and generate audit reports</p>
         </div>
 
+        {/* Success/Error Messages */}
+        {clearSuccess && (
+          <div className="mb-6 p-4 rounded-lg bg-green-50 border border-green-200 text-green-800 text-sm font-medium flex items-center justify-between">
+            <span>✓ {clearSuccess}</span>
+            <button onClick={() => setClearSuccess('')} className="hover:opacity-70">✕</button>
+          </div>
+        )}
+        {clearError && (
+          <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-800 text-sm font-medium flex items-center justify-between">
+            <span>⚠ {clearError}</span>
+            <button onClick={() => setClearError('')} className="hover:opacity-70">✕</button>
+          </div>
+        )}
+
         {/* Filters */}
         <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Filters & Export</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <div>
+              <CardTitle>Filters & Export</CardTitle>
+              <CardDescription>Manage and analyze your history records</CardDescription>
+            </div>
+            <Button
+              onClick={() => setShowClearModal(true)}
+              variant="outline"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Clear History
+            </Button>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col md:flex-row gap-4 items-end">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">From Date</label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm"
                 />
               </div>
 
@@ -164,7 +238,7 @@ export default function HistoryPage() {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm"
                 />
               </div>
 
@@ -173,7 +247,7 @@ export default function HistoryPage() {
                 <select
                   value={stationFilter}
                   onChange={(e) => setStationFilter(e.target.value)}
-                  className="px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm"
                 >
                   <option value="">All Stations</option>
                   {stations.map((station) => (
@@ -184,22 +258,26 @@ export default function HistoryPage() {
                 </select>
               </div>
 
-              <div className="flex gap-2">
-                <Button
-                  onClick={handlePrint}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  <Printer className="w-4 h-4 mr-2" />
-                  Print Report
-                </Button>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">History Type</label>
                 <select
                   value={view}
                   onChange={(e) => { setView(e.target.value); setPage(1) }}
-                  className="px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm"
                 >
                   <option value="release">Release History</option>
                   <option value="resupply">Resupply History</option>
                 </select>
+              </div>
+
+              <div className="flex items-end">
+                <Button
+                  onClick={handlePrint}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print Report
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -452,6 +530,15 @@ export default function HistoryPage() {
 
           </div>
         </div>
+
+        {/* Clear History Modal */}
+        <ClearHistoryModal
+          isOpen={showClearModal}
+          onClose={() => setShowClearModal(false)}
+          onClear={handleClearHistory}
+          isLoading={isClearLoading}
+          currentView={view}
+        />
 
       </main>
     </div>
