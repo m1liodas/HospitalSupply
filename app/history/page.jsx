@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Printer, Download, FileText } from 'lucide-react'
+import { Printer, Download, FileText, Trash2 } from 'lucide-react'
 import { useReactToPrint } from 'react-to-print'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import toast from 'react-hot-toast'
 
 export default function HistoryPage() {
   const router = useRouter()
@@ -21,6 +23,9 @@ export default function HistoryPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(50)
   const [total, setTotal] = useState(0)
+  const [clearDialogOpen, setClearDialogOpen] = useState(false)
+  const [clearType, setClearType] = useState('dateRange')
+  const [isClearing, setIsClearing] = useState(false)
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('loggedIn')
@@ -97,10 +102,39 @@ export default function HistoryPage() {
     }
   }
 
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: `Audit Report ${startDate} to ${endDate}`,
-  })
+  const handleClearHistory = async () => {
+    try {
+      setIsClearing(true)
+      const payload = {
+        clearType,
+        ...(clearType === 'dateRange' && { startDate, endDate }),
+      }
+
+      const response = await fetch('/api/audit-history', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to clear history')
+      }
+
+      toast.success(`History cleared successfully (${clearType})`)
+      setClearDialogOpen(false)
+      setClearType('dateRange')
+      
+      // Refresh data
+      setPage(1)
+      fetchAuditHistory()
+    } catch (error) {
+      console.error('Error clearing history:', error)
+      toast.error(error.message || 'Failed to clear history')
+    } finally {
+      setIsClearing(false)
+    }
+  }
 
   const getStations = () => {
     const stations = new Set(auditHistory.map(h => h.station_name))
@@ -192,6 +226,74 @@ export default function HistoryPage() {
                   <Printer className="w-4 h-4 mr-2" />
                   Print Report
                 </Button>
+                <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="bg-destructive hover:bg-destructive/90">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Clear History
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="max-w-md">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Clear History</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Choose how you want to clear the audit history. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-3 py-4">
+                      <label className="flex items-center p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                        <input
+                          type="radio"
+                          name="clearType"
+                          value="dateRange"
+                          checked={clearType === 'dateRange'}
+                          onChange={(e) => setClearType(e.target.value)}
+                          className="mr-3"
+                        />
+                        <div>
+                          <p className="font-medium text-foreground">Clear by Date Range</p>
+                          <p className="text-xs text-foreground/60">Delete records from {startDate} to {endDate}</p>
+                        </div>
+                      </label>
+                      <label className="flex items-center p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                        <input
+                          type="radio"
+                          name="clearType"
+                          value="lastMonth"
+                          checked={clearType === 'lastMonth'}
+                          onChange={(e) => setClearType(e.target.value)}
+                          className="mr-3"
+                        />
+                        <div>
+                          <p className="font-medium text-foreground">Clear Last Month</p>
+                          <p className="text-xs text-foreground/60">Delete records from the past 30 days</p>
+                        </div>
+                      </label>
+                      <label className="flex items-center p-3 border border-destructive/50 rounded-lg cursor-pointer hover:bg-destructive/10 transition-colors">
+                        <input
+                          type="radio"
+                          name="clearType"
+                          value="all"
+                          checked={clearType === 'all'}
+                          onChange={(e) => setClearType(e.target.value)}
+                          className="mr-3"
+                        />
+                        <div>
+                          <p className="font-medium text-destructive">Clear All Records</p>
+                          <p className="text-xs text-destructive/60">Delete all history data permanently</p>
+                        </div>
+                      </label>
+                    </div>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleClearHistory}
+                      disabled={isClearing}
+                      className="bg-destructive hover:bg-destructive/90"
+                    >
+                      {isClearing ? 'Clearing...' : 'Clear History'}
+                    </AlertDialogAction>
+                  </AlertDialogContent>
+                </AlertDialog>
                 <select
                   value={view}
                   onChange={(e) => { setView(e.target.value); setPage(1) }}

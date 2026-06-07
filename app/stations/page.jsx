@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { ArrowRight, Building2 } from 'lucide-react'
 import { fetchJson } from '@/lib/fetcher'
@@ -84,45 +83,34 @@ export default function StationsPage() {
             {error}
           </div>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-3">
           {stations.map((station) => {
             const route = STATION_ROUTES[station.name] || '#'
             return (
               <Link key={station.id} href={route}>
-                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer hover:border-primary/50">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-primary/20 rounded-lg">
-                          <Building2 className="w-6 h-6 text-primary" />
-                        </div>
-                        <div>
-                          <CardTitle className="text-xl">{station.name}</CardTitle>
-                          <CardDescription>{station.location}</CardDescription>
-                        </div>
-                      </div>
-                      <ArrowRight className="w-5 h-5 text-primary/60 group-hover:text-primary transition-colors" />
+                <div className="group flex items-center justify-between p-4 border border-border rounded-lg bg-background hover:border-primary/50 hover:bg-muted/50 transition-all duration-200 cursor-pointer">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                      <Building2 className="w-5 h-5 text-primary" />
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-foreground/70">
-                      Click to manage and track daily supply usage for this station
-                    </p>
-                  </CardContent>
-                </Card>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{station.name}</h3>
+                      <p className="text-sm text-foreground/60">{station.location}</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-foreground/40 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                </div>
               </Link>
             )
           })}
         </div>
 
-        <Card className="mt-8 bg-accent/10 border-accent/30">
-          <CardHeader>
-            <CardTitle className="text-base">Select station to display remaining stocks</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-foreground/70">
-            to be develop
-          </CardContent>
-        </Card>
+        <div className="mt-8 p-6 bg-accent/10 border border-accent/30 rounded-lg">
+          <h3 className="font-semibold text-foreground mb-2">Managing Stations</h3>
+          <p className="text-sm text-foreground/70">
+            Select a station above to manage inventory, track daily supply usage, and view station-specific reports.
+          </p>
+        </div>
       </main>
     </div>
   )
