@@ -129,6 +129,8 @@ export default function HistoryPage() {
 
   const stats = getTotalStats()
   const stations = getStations()
+  console.log('Current View:', view)
+  console.log(historyRows)
 
   return (
     <div className="min-h-screen bg-background">
@@ -230,7 +232,7 @@ export default function HistoryPage() {
         )}
 
         {/* Audit Table - Main Content for Print */}
-        <div ref={printRef}>
+        <div>
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -256,22 +258,22 @@ export default function HistoryPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-border bg-muted/50">
-                        <th className="text-left py-3 px-4 font-semibold text-foreground">Date & Time</th>
-                        <th className="text-left py-3 px-4 font-semibold text-foreground">Item</th>
-                        <th className="text-left py-3 px-4 font-semibold text-foreground">Brand</th>
+                      <tr className="bg-gray-200">
+                        <th className="border px-1 py-1">Date</th>
+                        <th className="border px-1 py-1">Item</th>
+                        <th className="border px-1 py-1">Brand</th>
+
                         {view === 'release' ? (
                           <>
-                            <th className="text-left py-3 px-4 font-semibold text-foreground">Station</th>
-                            <th className="text-center py-3 px-4 font-semibold text-foreground">Qty Released</th>
-                            <th className="text-center py-3 px-4 font-semibold text-foreground">Before</th>
-                            <th className="text-center py-3 px-4 font-semibold text-foreground">After</th>
-                            <th className="text-left py-3 px-4 font-semibold text-foreground">Released By</th>
+                            <th className="border px-1 py-1">Station</th>
+                            <th className="border px-1 py-1">Qty</th>
+                            <th className="border px-1 py-1">Before</th>
+                            <th className="border px-1 py-1">After</th>
                           </>
                         ) : (
                           <>
-                            <th className="text-center py-3 px-4 font-semibold text-foreground">Qty Added</th>
-                            <th className="text-left py-3 px-4 font-semibold text-foreground">Notes</th>
+                            <th className="border px-1 py-1">Qty Added</th>
+                            <th className="border px-1 py-1">Notes</th>
                           </>
                         )}
                       </tr>
@@ -346,7 +348,9 @@ export default function HistoryPage() {
 
             <div className="mb-8 border-b-2 border-black pb-4">
               <h1 className="text-[15px] font-bold">
-                CENTRAL SUPPLY AUDIT REPORT
+                {view === 'release'
+                  ? 'CENTRAL SUPPLY RELEASE REPORT'
+                  : 'CENTRAL SUPPLY RESUPPLY REPORT'}
               </h1>
 
               <p className="mt-2 text-[11px]">
@@ -362,47 +366,73 @@ export default function HistoryPage() {
 
             <table className="w-full border-collapse text-[8px] table-fixed">
               <thead>
-                <tr className="bg-gray-200">
-                  <th className="border px-1 py-1 text-left w-[18%]">Date</th>
-                  <th className="border px-1 py-1 text-left w-[22%]">Item</th>
-                  <th className="border px-1 py-1 text-left w-[16%]">Brand</th>
-                  <th className="border px-1 py-1 text-left w-[16%]">Station</th>
-                  <th className="border px-1 py-1 text-center w-[9%]">Qty</th>
-                  <th className="border px-1 py-1 text-center w-[9%]">Before</th>
-                  <th className="border px-1 py-1 text-center w-[10%]">After</th>
-                </tr>
+                {view === 'release' ? (
+                  <tr className="bg-gray-200">
+                    <th className="border px-1 py-1 text-left">Date</th>
+                    <th className="border px-1 py-1 text-left">Item</th>
+                    <th className="border px-1 py-1 text-left">Brand</th>
+                    <th className="border px-1 py-1 text-left">Station</th>
+                    <th className="border px-1 py-1 text-center">Qty</th>
+                    <th className="border px-1 py-1 text-center">Before</th>
+                    <th className="border px-1 py-1 text-center">After</th>
+                  </tr>
+                ) : (
+                  <tr className="bg-gray-200">
+                    <th className="border px-1 py-1 text-left">Date</th>
+                    <th className="border px-1 py-1 text-left">Item</th>
+                    <th className="border px-1 py-1 text-left">Brand</th>
+                    <th className="border px-1 py-1 text-center">Qty Added</th>
+                    <th className="border px-1 py-1 text-left">Notes</th>
+                  </tr>
+                )}
               </thead>
 
               <tbody>
-                {auditHistory.map((record, index) => (
-                  <tr key={index} className="align-top">
-                    <td className="border px-1 py-1 wrap-break-words">
-                      {new Date(record.released_at).toLocaleString()}
+                {historyRows.map((record, index) => (
+                  <tr key={index}>
+                    <td className="border px-1 py-1">
+                      {view === 'release'
+                        ? new Date(record.released_at).toLocaleString()
+                        : new Date(record.added_at).toLocaleString()}
                     </td>
 
-                    <td className="border px-1 py-1 font-semibold wrap-break-words">
+                    <td className="border px-1 py-1">
                       {record.item_name}
                     </td>
 
-                    <td className="border px-1 py-1 wrap-break-word">
+                    <td className="border px-1 py-1">
                       {record.item_brand || 'N/A'}
                     </td>
 
-                    <td className="border px-1 py-1 wrap-break-words">
-                      {record.station_name}
-                    </td>
+                    {view === 'release' ? (
+                      <>
+                        <td className="border px-1 py-1">
+                          {record.station_name}
+                        </td>
 
-                    <td className="border px-1 py-1 text-center">
-                      {record.quantity_released}
-                    </td>
+                        <td className="border px-1 py-1 text-center">
+                          {record.quantity_released}
+                        </td>
 
-                    <td className="border px-1 py-1 text-center">
-                      {record.quantity_before}
-                    </td>
+                        <td className="border px-1 py-1 text-center">
+                          {record.quantity_before}
+                        </td>
 
-                    <td className="border px-1 py-1 text-center">
-                      {record.quantity_after}
-                    </td>
+                        <td className="border px-1 py-1 text-center">
+                          {record.quantity_after}
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="border px-1 py-1 text-center">
+                          {record.quantity_added}
+                        </td>
+
+                        <td className="border px-1 py-1">
+                          {record.notes || ''}
+                        </td>
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>

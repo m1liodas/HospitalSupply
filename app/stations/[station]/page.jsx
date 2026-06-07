@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { fetchJson } from '@/lib/fetcher'
 import './station.css'
 import toast from 'react-hot-toast'
+import StationModal from '../../../components/station-modal'
 
 const normalizeStation = (value) =>
   String(value || '')
@@ -31,6 +32,7 @@ export default function ERStationPage() {
   const [isArchive, setIsArchive] = useState(false)
   const [archiveHistory, setArchiveHistory] = useState([])
   const POLL_INTERVAL_MS = 10000
+  const [saving, setSaving] = useState(false)
 
   // Dynamic month/year and days
   const now = new Date()
@@ -88,20 +90,27 @@ export default function ERStationPage() {
 
   // Handle polling based on archive state
   useEffect(() => {
-    if (!station || isArchive) return
-    
+    if (!station || isArchive || modal.isOpen) return
+
     const timer = setInterval(fetchData, POLL_INTERVAL_MS)
+
     return () => clearInterval(timer)
-  }, [station, isArchive])
+  }, [station, isArchive, modal.isOpen])
 
   const fetchData = async () => {
     try {
       const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-      const targetPeriod = selectedPeriod || currentMonth
+
+      // normalize period (prevents format mismatch)
+      const rawPeriod = selectedPeriod || currentMonth
+      const targetPeriod = String(rawPeriod).slice(0, 7) // forces YYYY-MM
+
+      // normalize station (prevents ER vs er mismatch)
+      const normalizedStation = normalizeStation(station)
 
       const [releasesRes, usagesRes, itemsRes] = await Promise.all([
-        fetch(`/api/stations-data/wards-stations/${station}`),
-        fetch(`/api/usage?station=${encodeURIComponent(station)}&month_year=${encodeURIComponent(targetPeriod)}`),
+        fetch(`/api/stations-data/wards-stations/${normalizedStation}`),
+        fetch(`/api/usage?station=${encodeURIComponent(normalizedStation)}&month_year=${encodeURIComponent(targetPeriod)}`),
         fetch('/api/items'),
       ])
 
@@ -118,13 +127,17 @@ export default function ERStationPage() {
       const usagesData = await usagesRes.json()
       const itemsData = await itemsRes.json()
 
-      setReleases(releasesData)
-      setUsages(usagesData.slice(0, daysInMonth))
-      setItems(itemsData)
+      setReleases(releasesData || [])
+      setUsages((usagesData || []).slice(0, daysInMonth))
+      setItems(itemsData || [])
       setLastUpdated(new Date().toLocaleTimeString())
+
     } catch (error) {
       console.error('Failed to fetch data:', error)
-      toast.error(`Failed to load station data`)
+      toast.error('Failed to load station data')
+      setReleases([])
+      setUsages([])
+      setItems([])
     } finally {
       setLoading(false)
     }
@@ -144,6 +157,7 @@ export default function ERStationPage() {
   const fetchAvailablePeriods = async () => {
     try {
       const data = await fetchJson(`/api/station-monthly-entry?station=${station}`)
+
       const uniquePeriods = Array.from(
         new Map(
           (data.periods || []).map(period => [
@@ -154,7 +168,12 @@ export default function ERStationPage() {
       )
 
       setAvailablePeriods(uniquePeriods)
-      setSelectedPeriod(data.currentMonth)
+
+      // ONLY set default if nothing is selected yet
+      if (!selectedPeriod && data.currentMonth) {
+        setSelectedPeriod(data.currentMonth)
+      }
+
     } catch (error) {
       console.error('Failed to fetch periods:', error)
     }
@@ -409,69 +428,56 @@ export default function ERStationPage() {
   }
 
   const saveUsage = async () => {
-    if (isArchive) {
-      alert('Archive period is read-only. Select Current Month to add or update usage.')
-      return
-    }
+    if (saving) return
 
-    const { day, itemId, type } = modal
+    setSaving(true)
 
     try {
-      // FIND EXISTING RECORD
+      const selectedDay = modal.day + 1
+
+      const usageDate =
+        `${displayYear}-${String(displayDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`
+
       const existingUsage = usages.find(
         u =>
-          u.item_id === itemId &&
-          new Date(u.usage_date).getDate() === day + 1
+          u.item_id === modal.itemId &&
+          new Date(u.usage_date).getDate() === selectedDay
       )
 
-      // CREATE DATE using selected period or current year/month
-      let year = displayYear
-      let month = String(displayDate.getMonth() + 1).padStart(2, '0')
-      const usageDate = `${year}-${month}-${String(day + 1).padStart(2, '0')}`
+      const amQuantity =
+        modal.type === 'am'
+          ? Number(inputValue || 0)
+          : Number(existingUsage?.am_quantity || 0)
 
-      // KEEP OTHER VALUE
-      const amQty =
-        type === 'am'
-          ? inputValue
-          : existingUsage?.am_quantity || 0
+      const pmQuantity =
+        modal.type === 'pm'
+          ? Number(inputValue || 0)
+          : Number(existingUsage?.pm_quantity || 0)
 
-      const pmQty =
-        type === 'pm'
-          ? inputValue
-          : existingUsage?.pm_quantity || 0
-
-      const res = await fetch('/api/usage', {
+      const result = await fetchJson('/api/usage', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          station: station,
-          item_id: itemId,
+          station,
+          item_id: modal.itemId,
           usage_date: usageDate,
-          am_quantity: amQty,
-          pm_quantity: pmQty,
+          am_quantity: amQuantity,
+          pm_quantity: pmQuantity,
         }),
       })
 
-      const data = await res.json()
+      toast.success(result.message || 'Usage saved')
 
-      if (res.ok) {
-        // REFRESH DATA
-        await fetchData()
+      await fetchData()
 
-        // CLOSE MODAL
-        closeModal()
-
-        toast.success('Saved successfully', {
-          icon: '✔',
-        })
-      } else {
-        toast.error(data.message || 'Something went wrong')
-      }
+      closeModal()
     } catch (error) {
       console.error(error)
-      toast.error('Failed to save usage')
+      toast.error(error.message || 'Failed to save usage')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -691,47 +697,14 @@ export default function ERStationPage() {
 
       </main>
 
-      {/* Edit Modal */}
-      {modal.isOpen && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">Edit {modal.type?.toUpperCase()} Usage</h2>
-              <button className="modal-close" onClick={closeModal}>×</button>
-            </div>
-            
-            <div className="modal-body">
-              <div className="modal-info">
-                <p className="info-row"><span className="info-label">Day:</span> <span className="info-value">{modal.day + 1}</span></p>
-                <p className="info-row"><span className="info-label">Item:</span> <span className="info-value">{modal.itemName}</span></p>
-                <p className="info-row"><span className="info-label">Shift:</span> <span className="info-value">{modal.type?.toUpperCase()}</span></p>
-              </div>
-              
-              <div className="modal-input-group">
-                <label className="modal-label">Enter Quantity:</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  className="modal-input"
-                  placeholder="0"
-                  autoFocus
-                />
-              </div>
-            </div>
-
-            <div className="modal-footer">
-              <button className="btn-cancel" onClick={closeModal}>
-                Cancel
-              </button>
-              <button className="btn-save" onClick={saveUsage}>
-                Save Changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <StationModal
+        modal={modal}
+        inputValue={inputValue}
+        setInputValue={setInputValue}
+        onClose={closeModal}
+        onSave={saveUsage}
+        saving={saving}
+      />
     </div>
   )
 }
