@@ -150,3 +150,51 @@ export async function getTopUsedItems(limit: number = 10): Promise<any[]> {
     throw new Error('Failed to fetch top used items')
   }
 }
+
+/**
+ * Clear all supply history
+ */
+export async function clearAllHistory(): Promise<number> {
+  try {
+    const [result]: any = await db.execute('DELETE FROM supply_history')
+    return result.affectedRows || 0
+  } catch (error) {
+    console.error('[Services] Clear all history error:', error)
+    throw new Error('Failed to clear all history')
+  }
+}
+
+/**
+ * Clear supply history by date range
+ */
+export async function clearHistoryByDateRange(
+  startDate: string,
+  endDate: string
+): Promise<number> {
+  try {
+    const [result]: any = await db.execute(
+      'DELETE FROM supply_history WHERE released_at >= ? AND released_at <= ?',
+      [startDate, endDate]
+    )
+    return result.affectedRows || 0
+  } catch (error) {
+    console.error('[Services] Clear history by date range error:', error)
+    throw new Error('Failed to clear history by date range')
+  }
+}
+
+/**
+ * Clear supply history from past months
+ */
+export async function clearHistoryPastMonths(months: number): Promise<number> {
+  try {
+    const [result]: any = await db.execute(
+      `DELETE FROM supply_history WHERE released_at < DATE_SUB(NOW(), INTERVAL ? MONTH)`,
+      [months]
+    )
+    return result.affectedRows || 0
+  } catch (error) {
+    console.error('[Services] Clear history past months error:', error)
+    throw new Error('Failed to clear history for past months')
+  }
+}
